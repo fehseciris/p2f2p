@@ -8,8 +8,6 @@ P2F2P::P2F2P(/* Default init */)
 P2F2P::P2F2P(std::vector<sFrenet> input)
 {
     LOG(Level::LINFO, "Init object with frenet data.");
-    throw std::runtime_error("Frenet input not implemented.");
-    /* To do */
     this->frenets_ = input;
 }
 
@@ -24,8 +22,6 @@ P2F2P::P2F2P(VariantVector variant)
     if(std::holds_alternative<std::vector<sFrenet>>(variant))
     {
         LOG(Level::LINFO, "Init object with point data from parser.");
-        throw std::runtime_error("Frenet input not implemented.");
-        /* To do */
         this->frenets_ = std::get<std::vector<sFrenet>>(variant);
     }
     if(std::holds_alternative<std::vector<sPoint>>(variant))
@@ -64,15 +60,64 @@ void P2F2P::closest_projections()
     return;
 }
 
-void P2F2P::curvature()
+double P2F2P::curvature(double s)
 {
-    return;
+    /* Check if points_ is empty */
+    if (this->points_.empty()) 
+    {
+        throw std::runtime_error("No points available to calculate curvature.");
+    }
+    /* Initialize the closest point */
+    double min_distance = std::numeric_limits<double>::max();
+    double closest_kappa = 0.0;
+    /* Iterate over the points to find the closest s */
+    for (const auto& point : this->points_) 
+    {
+        double distance = std::abs(point.s - s);
+        /* If this point is closer to the given s, update the closest kappa */
+        if (distance < min_distance) 
+        {
+            min_distance = distance;
+            closest_kappa = point.kappa;
+        }
+    }
+    /* Return the curvature (kappa) of the closest point */
+    return closest_kappa;
 }
 
 void P2F2P::change_in_curvature()
 {
-    return;
+    /* Check if there are enough points to calculate curvature change */
+    if (this->frenets_.size() < 2 || this->points_.size() < 2) 
+    {
+        throw std::runtime_error("Not enough points to calculate curvature change.");
+    }
+    /* Check if the sizes of frenets_ and points_ are consistent */
+    if (this->frenets_.size() != this->points_.size())
+    {
+        throw std::runtime_error("Invalid data size.");
+    }
+    for (size_t i = 1; i < frenets_.size(); ++i) 
+    {
+        /* Calculate the difference in arc length and curvature */
+        double delta_s = this->frenets_[i].geodetic_distance - frenets_[i - 1].geodetic_distance;
+        double delta_kappa = this->points_[i].kappa - this->points_[i - 1].kappa;
+        if (delta_s != 0) 
+        {
+            /* Calculate the derivative of curvature (dkappa) */
+            frenets_[i].lateral_distance = delta_kappa / delta_s;
+        } 
+        else 
+        {
+            /* No change in s means no change in kappa */
+            frenets_[i].lateral_distance = 0.0;  
+        }
+        /* Optional: Update the corresponding sAPoint with the new dkappa */
+        this->points_[i].dkappa = frenets_[i].lateral_distance;
+    }
 }
+
+
 
 void P2F2P::frenet2global()
 {
@@ -102,14 +147,54 @@ void P2F2P::interpolate()
     return;
 }
 
-void P2F2P::position()
+sPoint P2F2P::position(double s)
 {
-    return;
+    /* Check if points_ is empty */
+    if (this->points_.empty()) 
+    {
+        throw std::runtime_error("No points available to calculate position.");
+    }
+    /* Initialize the closest point */
+    double min_distance = std::numeric_limits<double>::max();
+    sPoint closest_point = {0.0, 0.0};
+    /* Iterate over the points to find the closest s */
+    for (const auto& point : this->points_) 
+    {
+        double distance = std::abs(point.s - s);
+        /* If this point is closer to the given s, update the closest point */
+        if (distance < min_distance) 
+        {
+            min_distance = distance;
+            closest_point = point.cartesian_point;
+        }
+    }
+    /* Return the cartesian position (x, y) of the closest point */
+    return closest_point;
 }
 
-void P2F2P::tangentAngle()
+double P2F2P::tangentAngle(double s)
 {
-    return;
+    /* Check if points_ is empty */
+    if (this->points_.empty()) 
+    {
+        throw std::runtime_error("No points available to calculate tanget angle.");
+    }
+    /* Initialize the closest point */
+    double min_distance = std::numeric_limits<double>::max();
+    double closest_theta = 0.0;
+    /* Iterate over the points to find the closest s */
+    for (const auto& point : this->points_) 
+    {
+        double distance = std::abs(point.s - s);
+        /* If this point is closer to the given s, update the closest theta */
+        if (distance < min_distance) 
+        {
+            min_distance = distance;
+            closest_theta = point.theta;
+        }
+    }
+    /* Return the tangent angle (theta) of the closest point */
+    return closest_theta;
 }
 
 void P2F2P::show()
@@ -138,11 +223,14 @@ std::vector<sFrenet> P2F2P::get_frenets()
     return this->frenets_;
 }
 
+double P2F2P::path_length()
+{
+    return this->points_.back().s;
+}
+
 void P2F2P::upload(std::vector<sFrenet> input)
 {
     LOG(Level::LINFO, "Refresh object with frenet data.");
-    throw std::runtime_error("Frenet refresh not implemented.");
-    /* To do */
     /* Clean up */
     this->frenets_.clear();
     this->points_.clear();

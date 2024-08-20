@@ -1,27 +1,5 @@
 #pragma once
 
-/* Libs */
-#include <list>
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include <cstring>
-#include <algorithm>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <stdio.h>
-#include <iomanip>
-#include <exception>
-#include <functional>
-#include <variant>
-#include <chrono>
-#include <string>
-#include <ctime>
-#include <memory>
-
-#include "iol.h"
-
 /* Defines */
 #define DUMMY                   1
 

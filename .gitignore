@@ -33,5 +33,14 @@
 
 # folders 
 /eigen-3.4.0
+/.vs
+/x64
+/p2f2p
+
+# Visual Studio project files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
 
 # Eof

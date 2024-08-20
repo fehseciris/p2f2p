@@ -52,11 +52,4 @@ std::string IOL::actual_time(void)
     return oss.str();
 }
 
-// void print_frenet_frame(const frenet &frame, const curve &c)
-//     {
-//         _info_(PRECISION<<"Equation decsribing the curve: y = ("<<c.coefficients[2]<<")x^2 + ("<<c.coefficients[1]<<")x + ("<<c.coefficients[0]<<")")
-//         _info_("The input point ("<<frame.cartesian_point.x<<","<<frame.cartesian_point.y<<") lies at a distance of "<<frame.geodetic_distance<<" units along the curve, to the <"<<(frame.direction?"LEFT":"RIGHT")<<"> of the direction of motion, at a lateral distance of "<<(frame.direction?"-":"+")<<frame.lateral_distance<<" from the curve")
-
-//     }
-
 /* Eof */

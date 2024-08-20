@@ -1,6 +1,10 @@
 #pragma once
 
+#include <vector>
+#include <cmath>
+
 #include "util.h"
+#include "iol.h"
 
 namespace p2f2p
 {
@@ -19,20 +23,23 @@ namespace p2f2p
         Core& operator=(Core&&) = delete;
 
         /**
-         * To do
-         * @param waypoints
+         * Convert global waypoints to Frenet coordinates
+         * @param waypoints Input vector of sAPoint (global waypoints)
+         * @return std::vector<sFrenet> Vector of Frenet coordinates
          */
         std::vector<sFrenet> g2f(const std::vector<sAPoint>& waypoints);
 
         /**
-         * To do
-         * @param frenets
+         * Convert Frenet coordinates to global waypoints
+         * @param frenets Input vector of sFrenet coordinates
+         * @return std::vector<sAPoint> Vector of global waypoints (sAPoint)
          */
         std::vector<sAPoint> f2g(const std::vector<sFrenet>& frenets);
 
         /**
-         * To do
-         * @param waypoints
+         * Expand sPoint waypoints into sAPoint with default values
+         * @param waypoints Input vector of sPoint waypoints
+         * @return std::vector<sAPoint> Expanded vector of sAPoint waypoints
          */
         static std::vector<sAPoint> expand(std::vector<sPoint> waypoints);
 

@@ -21,7 +21,7 @@ std::vector<sFrenet> Core::g2f(const std::vector<sAPoint>& waypoints)
         frenet.cartesian_point = point.cartesian_point;
 
         double min_distance = std::numeric_limits<double>::max();
-        sPoint closest_point;
+        sPoint closest_point = { 0,0 };
         double s_value = 0.0;
 
         for (size_t i = 0; i < waypoints.size() - 1; ++i) 
@@ -54,7 +54,8 @@ std::vector<sFrenet> Core::g2f(const std::vector<sAPoint>& waypoints)
             double s_segment = std::sqrt(std::pow(projection.x - p1.cartesian_point.x, 2) + 
                     std::pow(projection.y - p1.cartesian_point.y, 2));
 
-            if (distance < min_distance) {
+            if (distance < min_distance) 
+            {
                 min_distance = distance;
                 closest_point = projection;
                 s_value = s_segment;
@@ -115,7 +116,7 @@ std::vector<sAPoint> Core::f2g(const std::vector<sFrenet>& frenets)
     return aPoints;
 }
 
-std::vector<sAPoint> expand(std::vector<sPoint> waypoints)
+std::vector<sAPoint> Core::expand(std::vector<sPoint> waypoints)
 {
     double total_s = 0.0;
     std::vector<sAPoint> path;

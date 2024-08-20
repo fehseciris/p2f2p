@@ -55,14 +55,12 @@ public:
 
     /**
      * Return static IOL instance 
-     * 
      * @return Return IOL instance  
      */
     static IOL& get_instance(void);
 
     /**
      * Basic IOL level parser
-     * 
      * @param level Level for logging
      * @param str String for console output
      * @return void
@@ -71,7 +69,6 @@ public:
 
     /**
      * Time function
-     * 
      * @return std::string with actual time and date
      */
     std::string actual_time(void);
