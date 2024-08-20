@@ -11,9 +11,18 @@ int main(int argc, char * argv[])
 
     /* Init with point vector */
     std::vector<sPoint> waypoints = {{0, 0}, {1, 1}, {2, 0}, {3, 1}};
+    
     std::shared_ptr<P2F2P> sptr_p2f2p = std::make_shared<P2F2P>(waypoints);
+
+    std::vector<sAPoint> ap = sptr_p2f2p->get_points();
+    for(auto& it : ap)
+        std::cout << it << std::endl;
+
     sptr_p2f2p->global2frenet();
-    std::vector<sFrenet> frenets = sptr_p2f2p->get_frenets();
+
+    std::vector<sFrenet> f = sptr_p2f2p->get_frenets();
+    for(auto& it : f)
+        std::cout << it << std::endl;
 
     /**
      * Use frenet object functionality ...
