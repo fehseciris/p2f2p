@@ -5,6 +5,10 @@
 int main(int argc, char * argv[])
 {
     // std::cout << "Built test." << std::endl;
+    
+    /**
+     * Use frenet object functionality ...
+     */
 
     /* Init with arguments */
     // std::shared_ptr<P2F2P> sptr_p2f2p = std::make_shared<P2F2P>(P2F2P::collect(argc, argv));
@@ -23,10 +27,6 @@ int main(int argc, char * argv[])
     std::vector<sFrenet> f = sptr_p2f2p->get_frenets();
     for(auto& it : f)
         std::cout << it << std::endl;
-
-    /**
-     * Use frenet object functionality ...
-     */
 
     return EXIT_SUCCESS;
 }
