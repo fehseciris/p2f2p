@@ -10,23 +10,26 @@ int main(int argc, char * argv[])
      * Use frenet object functionality ...
      */
 
-    /* Init with arguments */
-    // std::shared_ptr<P2F2P> sptr_p2f2p = std::make_shared<P2F2P>(P2F2P::collect(argc, argv));
+    /* Data */
+    // std::vector<sPoint> waypoints = {{0,0},{1,1},{2,0},{3,1}};
+    std::vector<sPoint> waypoints = {{0,0},{1,1},{2,5}};
+    // std::vector<sPoint> new_waypoints = {{1,2},{3,5},{4,10}};
 
-    /* Init with point vector */
-    std::vector<sPoint> waypoints = {{0, 0}, {1, 1}, {2, 0}, {3, 1}};
+    /* 1. Empty init */
+    std::shared_ptr<P2F2P> sptr_p2f2p1 = std::make_shared<P2F2P>();
+    sptr_p2f2p1->upload(waypoints);
+    std::cout << *sptr_p2f2p1;
+
+
     
-    std::shared_ptr<P2F2P> sptr_p2f2p = std::make_shared<P2F2P>(waypoints);
 
-    std::vector<sAPoint> ap = sptr_p2f2p->get_points();
-    for(auto& it : ap)
-        std::cout << it << std::endl;
+    /* 2. Init with point vector */
+    std::shared_ptr<P2F2P> sptr_p2f2p2 = std::make_shared<P2F2P>(waypoints);
+    std::cout << *sptr_p2f2p2;
 
-    sptr_p2f2p->global2frenet();
 
-    std::vector<sFrenet> f = sptr_p2f2p->get_frenets();
-    for(auto& it : f)
-        std::cout << it << std::endl;
+    /* Refresh with new waypoints */
+    // sptr_p2f2p3->upload(new_waypoints);
 
     return EXIT_SUCCESS;
 }

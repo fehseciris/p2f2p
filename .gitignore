@@ -36,6 +36,11 @@
 /.vs
 /x64
 /p2f2p
+/info
+/old
+/spline
+
+# files
 
 # Visual Studio project files
 *.sln
