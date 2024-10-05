@@ -1,122 +1,221 @@
 #include "p2f2p.h"
 
-P2F2P::P2F2P(/* Default init */)
+P2F2P::P2F2P(const std::vector<sPoint>& points)
 {
-    LOG(Level::LINFO, "Init object without data.");
-}
-
-P2F2P::P2F2P(const std::vector<sPoint>& input)
-{
-    LOG(Level::LINFO, "Init object with point data.");
-    if(input.size() > MAX_NUM_WAYPOINTS)
-    {
-        throw std::out_of_range("Reach max waypoints limit.");
-    }
-    this->points_ = pre_calculator(input);
+    this->waypoints_ = points;
+    /* obtain the equation of the curve */
+    this->curve_ = obtain_curve(this->waypoints_);
 }
 
 P2F2P::~P2F2P()
 {
-    /* Clean up */
-    this->points_.clear();
+
 }
 
-void P2F2P::upload(const std::vector<sPoint>& input)
+void P2F2P::process_points(const std::vector<sPoint>& points)
 {
-    LOG(Level::LINFO, "Refresh object with point data.");
-    if(input.size() > MAX_NUM_WAYPOINTS)
-    {
-        throw std::out_of_range("Reach max waypoints limit.");
-    }
-    /* Clean up */
-    this->points_ = pre_calculator(input);
+    this->clear();
+    this->waypoints_ = points;
+    /* obtain the equation of the curve */
+    this->curve_ = obtain_curve(this->waypoints_);
     return;
 }
 
-std::vector<sPoint> P2F2P::collect(int argc, char* argv[])
+sFrenet P2F2P::g2f(const sPoint& target)
 {
-    if(argc > 1)
+    //find the point among the input waypoints that lies closest to the input/target point
+    int closest_point = find_nearest_point(c, target);            
+    //find the closest point to the input/target point on the continuous curve and get the distance
+    sFrenet frame = distance_to_curve(c, target, closest_point);   
+    //find the distance to the closest point on the continuous curve from the curve's origin
+    geodetic_distance(c, frame, closest_point);                   
+    //print output to console
+    print.print_frenet_frame(frame,c);                            
+}
+
+void P2F2P::clear(void)
+{
+    this->waypoints_.clear();
+    this->curve_.coefficients.clear();
+    this->curve_.points.clear();
+    this->curve_.order = 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+NumericalMethods compute;
+IO print;
+
+/**
+ * Processes the input points and generates the Frenet coodinates.
+ * This is the master-fuction triggering all the sub-modules required for solving the problem
+ *
+ * @param points List of way-points obtained as input
+ * @param target Cartesian coordinate of input point
+ * @return void
+ */
+void Core::process_points(vector<point> points, point target)
+{
+    curve c  = obtain_curve(points);                              //obtain the equation of the curve
+
+    int closest_point = find_nearest_point(c, target);            //find the point among the input waypoints that lies closest to the input/target point
+
+    frenet frame = distance_to_curve(c, target, closest_point);   //find the closest point to the input/target point on the continuous curve and get the distance
+
+    geodetic_distance(c, frame, closest_point);                   //find the distance to the closest point on the continuous curve from the curve's origin
+
+    print.print_frenet_frame(frame,c);                            //print output to console
+}
+
+
+/**
+ * Fits a polygon to the points obtained as input.
+ * For now, a second order polynomial has been approximated
+ * (Can be switched to higher order polynomial, or B-spline... if required)
+ *
+ * @param points List of way-points obtained as input
+ * @return curve describing the coefficients of the polynomial
+ */
+curve Core::obtain_curve(const vector<point> &points)
+{
+    curve c; vector<double> coeff;
+    compute.poly_fit_points(points, coeff, ORDER);
+
+    c.points = points;
+    c.order = ORDER;
+    c.coefficients = coeff;
+    return c;
+}
+
+
+/**
+ * Find the waypoint nearest to the target
+ *
+ * @param curve Describes the coefficients of the polynomial
+ * @param target The input point for which the Frenet frame is to be obtained
+ * @return index of the point (among the input way points) which lies nearest to the target
+ */
+int Core::find_nearest_point(const curve &c, const point &target)
+{
+    int min_index = NEGATIVE_ONE;
+    double min_dist = VERY_LARGE_NUMBER;
+    double dist;
+    double prev_dist;
+    for(int i = 0; i < c.points.size(); i++)
     {
-        if (std::string(argv[1]) == "-p") 
+        dist = compute.eucledian_distance(c.points[i], target);
+        if(dist < min_dist)
         {
-            if((argc - 1) % 2 != 0)
-            {
-                throw std::invalid_argument("Invalid amount of arguments.");
-            }
-            std::vector<sPoint> vector;
-            sPoint dummy;
-            for (int i = 2; i < argc; i += 2) 
-            {
-                try 
-                {
-                    dummy.x = std::stoi(argv[i]);
-                    dummy.y = std::stoi(argv[i + 1]);
-                } 
-                catch (const std::invalid_argument& e) 
-                {
-                    throw std::invalid_argument("Invalid argument: non-numeric value.");
-                } 
-                catch (const std::out_of_range& e) 
-                {
-                    throw std::out_of_range("Argument out of range.");
-                }
-                vector.push_back(dummy);
-            }
-            return vector;
-        } 
+            min_index = i;
+            min_dist = dist;
+        }
+
+        if((i > 0) && (dist > prev_dist))
+        {
+            return min_index;
+        }
+
+        prev_dist = dist;
+
+    }
+
+    return min_index;
+}
+
+
+/**
+ * Find the closest distance of the target point from the curve
+ *
+ * @param curve Describes the coefficients of the polynomial
+ * @param target The input point for which the Frenet frame is to be obtained
+ * @param min_index Index of the point (among the input way points) which lies nearest to the target
+ * @return frenet frame of the target point
+ */
+frenet Core::distance_to_curve(const curve &c, point &target, int min_index)
+{
+    float alpha = ALPHA;
+    int max_iteration = MAXIMUM_ITERATION;
+    frenet frame = compute.steepest_gradient_descent(c, target, min_index, alpha, max_iteration);
+    return frame;
+}
+
+
+/**
+ * Compute the distance of the closest point to the target from the origin, along the curve
+ *
+ * @param curve Describes the coefficients of the polynomial
+ * @param frame Frenet frame of the target (the geodetic distance is updated here)
+ * @param min_index Index of the point (among the input way points) which lies nearest to the target
+ * @return void
+ */
+void Core::geodetic_distance(const curve &c, frenet &frame, int min_index)
+{
+    int last_index = NEGATIVE_ONE;
+    double dist_end = 0.0f;
+    bool compute_distance = false;
+    float cross_prod;
+    if((min_index >= 0) && (min_index < c.points.size()))
+    {
+        float dist_1 = compute.eucledian_distance(c.points[min_index - 1], frame.cartesian_point);
+        float dist_2 = compute.eucledian_distance(c.points[min_index], frame.cartesian_point);
+
+        if(dist_1 < dist_2)
+        {
+            last_index = min_index - 1;
+            dist_end = dist_1;
+            cross_prod = compute.cross_product(c.points[min_index - 1], frame.cartesian_point);
+        }
         else
         {
-            throw std::invalid_argument("Invalid arguments.");
+            last_index = min_index;
+            dist_end = dist_2;
+            cross_prod = compute.cross_product(c.points[min_index], frame.cartesian_point);
         }
+
+        compute_distance = true;
+
+    }
+    else if(min_index == 0)
+    {
+        last_index = 0;
+        frame.geodetic_distance = compute.eucledian_distance(c.points[0],frame.cartesian_point);
+        cross_prod = compute.cross_product(c.points[0], frame.cartesian_point);
     }
     else
     {
-        throw std::runtime_error("Arguments empty.");
+        //we are doomed
+        _fatal_("Invalid index ("<<min_index<<") for point-on-curve closest to the target point. Can't proceed.")
     }
-}
 
-std::vector<sPoint> P2F2P::pre_calculator(const std::vector<sPoint>& input)
-{
-    /* Clean up */
-    this->points_.clear();
-    this->extract_X_.clear();
-    this->extract_Y_.clear();
-    this->path_length_ = 0;
-    /* Extract */
-    for(const auto& point : input)
+
+    if(compute_distance)
     {
-        extract_X_.push_back(point.x);
-        extract_Y_.push_back(point.y);
+        double dist = 0.0f;
+
+        for(int i = 1; i <= last_index; i++)
+        {
+            dist += compute.eucledian_distance(c.points[i], c.points[i-1]);
+        }
+
+        dist+=dist_end;
+        frame.geodetic_distance = dist;
     }
-    tk::spline spline;
-    spline.set_points(extract_X_, extract_Y_);
-    /* Numerical integration */
-    double path_length = 0;
-    double prev_X = extract_X_[0];
-    double prev_Y = extract_Y_[0];
-    /* Loop */
-    for (double x = extract_X_[0]; x <= extract_X_.back(); x += DISCRETIZATION_DISTANCE) 
-    {
-        double y = spline(x);  
-        double dx = x - prev_X;
-        double dy = y - prev_Y;
-        path_length += std::sqrt(dx * dx + dy * dy);
-        prev_X = x;
-        prev_Y = y;
-    }
-    this->path_length_ = path_length;
-    return input;
+
+    if(cross_prod > 0)
+        frame.direction = true;
+    else
+        frame.direction = false;
 }
 
-/* Extern */
 
-std::ostream& operator<<(std::ostream& os, const P2F2P& o)
-{
-    os  << "Path length:                " << o.path_length_ << "\n"
-        << "Discretization distance:    " << DISCRETIZATION_DISTANCE << "\n"
-        << "Waypoints:                  " << o.points_.size() << "\n"
-        << "Max waypoints               " << MAX_NUM_WAYPOINTS << "\n";
-    return os;
-}
 
-/* Eof */
