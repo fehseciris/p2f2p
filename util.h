@@ -9,7 +9,7 @@
 #define NEGATIVE_ONE                -1
 #define ORDER                       2
 #define TERMINATION_CRITERIA        0.0001f
-#define ALPHA                       0.5f
+#define ALPHA                       0.001f
 #define MAXIMUM_ITERATION           25
 /* spline */
 #define DISCRETIZATION_DISTANCE     0.001
@@ -21,7 +21,6 @@ struct sPoint
     double x;
     double y;
 };
-
 std::ostream& operator<<(std::ostream& os, const sPoint& point);
 std::ostream& operator<<(std::ostream& os, const std::vector<sPoint>& points);
 
@@ -46,7 +45,6 @@ struct sFrenet
     bool direction; //true -> left; false -> right
     double lateral_distance;
 };
-
 std::ostream& operator<<(std::ostream& os, const sFrenet& frenet);
 
 /* Eof */

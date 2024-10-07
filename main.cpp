@@ -12,14 +12,17 @@ int main(int argc, char * argv[])
     // std::vector<sPoint> waypoints = {{1,2},{3,5},{4,10}};    
 
     sPoint point = {3, 2};
+    sFrenet frenet;
 
-    /* Workspace */
-    std::shared_ptr<eigen::P2F2P> sptr_p2f2p2 = std::make_shared<eigen::P2F2P>(waypoints);
-    sptr_p2f2p2->g2f(point);
-    std::cout << *sptr_p2f2p2 << std::endl;
+    /* Workspace eigen */
+    std::shared_ptr<eigen::P2F2P> sptr_p2f2p = std::make_shared<eigen::P2F2P>(waypoints);
+    frenet = sptr_p2f2p->g2f(point);
+    std::cout << frenet << std::endl;
 
-
-
+    /* Workspace spline */
+    // std::shared_ptr<spline::P2F2P> sptr_p2f2p = std::make_shared<spline::P2F2P>(waypoints);
+    // frenet = sptr_p2f2p->g2f(point);
+    // std::cout << frenet << std::endl;
 
     return EXIT_SUCCESS;
 }

@@ -53,6 +53,7 @@ eigen::P2F2P::P2F2P()
 
 eigen::P2F2P::P2F2P(const std::vector<sPoint>& points)
 {
+    LOG(Level::LINFO, "Init object with waypoints");
     this->waypoints_ = points;
     /* obtain the equation of the curve */
     this->curve_ = obtain_curve();
@@ -65,6 +66,7 @@ eigen::P2F2P::~P2F2P()
 
 void eigen::P2F2P::process_points(const std::vector<sPoint>& points)
 {
+    LOG(Level::LINFO, "Refresh object with point data.");
     this->clear();
     this->waypoints_ = points;
     /* obtain the equation of the curve */
@@ -240,6 +242,7 @@ void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
     {
         frame.direction = false;
     }
+    return;
 }
 
 /* Extern */
@@ -297,6 +300,7 @@ sFrenet spline::P2F2P::g2f(const sPoint& point)
 {
     /* Step 1: Find the closest point on the path and obtain the arc length (s) */
     this->point_ = point;
+    this->frenet_.cartesian_point = point;
     this->frenet_ = closest_point(point);
 
     /* Step 2: Calculate the tangent vector */

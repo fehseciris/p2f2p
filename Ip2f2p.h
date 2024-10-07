@@ -9,7 +9,7 @@
 class Ip2f2p
 {
 public:
-    virtual ~Ip2f2p();
+    virtual ~Ip2f2p() = default;
     virtual void process_points(const std::vector<sPoint>&) = 0;
     virtual sFrenet g2f(const sPoint&) = 0;
     virtual sPoint f2g(const sFrenet&) = 0;
