@@ -39,21 +39,24 @@ void NumMethods::poly_fit_points(const std::vector<sPoint>& points, std::vector<
     Eigen::VectorXd xv(points.size());
     Eigen::VectorXd yv(points.size());
     Eigen::VectorXd result;
-
     for(int i = 0; i < points.size(); i++)
     {
         xv(i) = points[i].x;
         yv(i) = points[i].y;
     }
-
     for (size_t i = 0; i < points.size(); i++)
-    for (size_t j = 0; j < order+1; j++)
-        A(i, j) = pow(points[i].x, j);
-
+    {
+        for (size_t j = 0; j < order+1; j++)
+        {
+            A(i, j) = pow(points[i].x, j);
+        }
+    }
     result = A.householderQr().solve(yv);
     coeff.resize(order+1);
     for (size_t i = 0; i < order+1; i++)
+    {
         coeff[i] = result[i];
+    }
 }
 
 /**
@@ -67,9 +70,9 @@ void NumMethods::poly_fit_points(const std::vector<sPoint>& points, std::vector<
  * @param max_iter Termination criterion
  * @return frenet Frenet frame describing the target
  */
-sFrenet NumMethods::steepest_gradient_descent(const sCurve& c, sPoint& target, int init_index, double alpha, int max_iter)
+sFrenet NumMethods::steepest_gradient_descent(const sCurve& curve, const sPoint& target, int init_index, double alpha, int max_iter)
 {
-    double x = c.points[init_index].x;  double y = c.points[init_index].y;
+    double x = curve.points[init_index].x;  double y = curve.points[init_index].y;
     double p = target.x;  double q = target.y;
     double prev_residual = VERY_LARGE_NUMBER;
     double residual_;
@@ -80,8 +83,8 @@ sFrenet NumMethods::steepest_gradient_descent(const sCurve& c, sPoint& target, i
 
     for(int i = 0; i<max_iter; i++)
     {
-        x = x - (alpha*gradient(x, p, q, c.coefficients[2], c.coefficients[1], c.coefficients[0])); //gradient estimation and update
-        residual_ =   residual(x, p, q, c.coefficients[2], c.coefficients[1], c.coefficients[0]);  //new residual computation
+        x = x - (alpha*gradient(x, p, q, curve.coefficients[2], curve.coefficients[1], curve.coefficients[0])); //gradient estimation and update
+        residual_ = residual(x, p, q, curve.coefficients[2], curve.coefficients[1], curve.coefficients[0]);  //new residual computation
         if(fabs(residual_ - prev_residual) < TERMINATION_CRITERIA)        //checking termination criterion
         {
             closest_approach.x = x;
@@ -96,7 +99,6 @@ sFrenet NumMethods::steepest_gradient_descent(const sCurve& c, sPoint& target, i
             prev_residual = residual_;
         }
     }
-
     //in case the maximum number of iterations have been exceeded without convergence (it starts getting weird at this point), the last updated values are returned
     closest_approach.x = x;
     closest_approach.y = y;
@@ -106,5 +108,4 @@ sFrenet NumMethods::steepest_gradient_descent(const sCurve& c, sPoint& target, i
     return frame;
 }
 
-
-
+/* Eof */

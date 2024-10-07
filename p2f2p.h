@@ -1,27 +1,98 @@
 #pragma once
 
-#include "Util.h"
-#include "NumericalMethods.h"
+#include <iostream>
+#include <vector>
+#include <exception>
+#include <variant>
+#include <memory>
 
-class P2F2P
+#include "Ip2f2p.h"
+#include "util.h"
+#include "num.h"
+#include "iol.h"
+
+#include "spline/src/spline.h"
+
+static std::vector<sPoint> collect(int argv, char* argc[]);
+
+namespace eigen
 {
-public:
-    P2F2P(const std::vector<sPoint>& points);
-    ~P2F2P();
-    void process_points(const std::vector<sPoint>& points);
-    sFrenet g2f(const sPoint& target);
+    class P2F2P : public Ip2f2p
+    {
+    public:
+        P2F2P();
+        P2F2P(const std::vector<sPoint>& points);
+        ~P2F2P();
+        /* Explicit delete */
+        P2F2P(const P2F2P&) = delete;
+        P2F2P& operator=(const P2F2P&) = delete;
+        P2F2P(P2F2P&&) = delete;
+        P2F2P& operator=(P2F2P&&) = delete;
 
-private:
-    void clear(void);
+        void process_points(const std::vector<sPoint>& points);
+        sFrenet g2f(const sPoint& target);
+        sPoint f2g(const sFrenet& target);
 
+        friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 
-    curve obtain_curve(const vector<point> &points);
-    int find_nearest_point(const curve &c, const point &target);
-    frenet distance_to_curve(const curve &c, point &target, int min_index);
-    void geodetic_distance(const curve &c, frenet &frame, int min_index);
+    private:
+        void clear(void);
+        sCurve obtain_curve(void);
+        int find_nearest_point(const sPoint& target);
+        sFrenet distance_to_curve(const sPoint& target, int min_index);
+        void geodetic_distance(sFrenet& frame, int min_index);
 
-    std::vector<sPoint> waypoints_;
-    sCurve curve_;
+        /* Members */
+        std::vector<sPoint> waypoints_;
+        sCurve curve_;
+        sPoint point_;
+        sFrenet frenet_;
+
+    };
+
+    std::ostream& operator<<(std::ostream& os, const P2F2P& o);
+};
+
+namespace spline
+{
+    class P2F2P : public Ip2f2p
+    {
+    public:
+        P2F2P();
+        P2F2P(const std::vector<sPoint>& points);
+        ~P2F2P();
+        /* Explicit delete */
+        P2F2P(const P2F2P&) = delete;
+        P2F2P& operator=(const P2F2P&) = delete;
+        P2F2P(P2F2P&&) = delete;
+        P2F2P& operator=(P2F2P&&) = delete;
+
+        void process_points(const std::vector<sPoint>& points);
+        sFrenet g2f(const sPoint& target);
+        sPoint f2g(const sFrenet& target);
+
+        friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
+
+    private:
+        double pre_calculator(void);
+        double euclidean_distance(const sPoint& p1, const sPoint& p2);
+        void init(void);
+        sFrenet closest_point(const sPoint& point);
+
+        /* Members */
+        std::vector<sPoint> points_;
+        sFrenet frenet_;
+        sPoint point_;
+        double path_length_;
+        tk::spline sx_;
+        tk::spline sy_;
+        std::vector<double> extract_X_;
+        std::vector<double> extract_Y_;
+        std::vector<double> extract_T_;
+
+    };
+
+    std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 };
 
 /* Eof */

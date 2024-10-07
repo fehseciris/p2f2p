@@ -38,8 +38,6 @@ enum class Level
     LERROR,
 };
 
-/* Forward declaration */
-
 /* Class Logger */
 class IOL
 {
