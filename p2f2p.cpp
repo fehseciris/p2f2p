@@ -54,6 +54,10 @@ eigen::P2F2P::P2F2P()
 eigen::P2F2P::P2F2P(const std::vector<sPoint>& points)
 {
     LOG(Level::LINFO, "Init object with waypoints");
+    if(points.size() < 10)
+    {
+        throw std::runtime_error("Not enough points! Min 10.");
+    }
     this->waypoints_ = points;
     /* obtain the equation of the curve */
     this->curve_ = obtain_curve();
@@ -67,6 +71,10 @@ eigen::P2F2P::~P2F2P()
 void eigen::P2F2P::process_points(const std::vector<sPoint>& points)
 {
     LOG(Level::LINFO, "Refresh object with point data.");
+    if(points.size() < 10)
+    {
+        throw std::runtime_error("Not enough points! Min 10.");
+    }
     this->clear();
     this->waypoints_ = points;
     /* obtain the equation of the curve */
@@ -84,11 +92,11 @@ void eigen::P2F2P::process_points(const std::vector<sPoint>& points)
 sFrenet eigen::P2F2P::g2f(const sPoint& target)
 {
     this->point_ = target;
-    //find the point among the input waypoints that lies closest to the input/target point
+    // Find the point among the input waypoints that lies closest to the input/target point
     int closest_point = find_nearest_point(target);            
-    //find the closest point to the input/target point on the continuous curve and get the distance
+    // Find the closest point to the input/target point on the continuous curve and get the distance
     sFrenet frame = distance_to_curve(target, closest_point);   
-    //find the distance to the closest point on the continuous curve from the curve's origin
+    // Find the distance to the closest point on the continuous curve from the curve's origin
     geodetic_distance(frame, closest_point);    
     this->frenet_ = frame;               
     return frame;                        
@@ -124,8 +132,8 @@ void eigen::P2F2P::clear(void)
 sCurve eigen::P2F2P::obtain_curve(void)
 {
     sCurve curve;
-    std::vector<double> coeff;
-    NumMethods::poly_fit_points(this->waypoints_, coeff, ORDER);
+    std::vector<sCoeff> coeff;
+    eigen::NumMethods::poly_fit_points(this->waypoints_, coeff, ORDER);
     curve.points = this->waypoints_;
     curve.order = ORDER;
     curve.coefficients = coeff;
@@ -142,12 +150,12 @@ sCurve eigen::P2F2P::obtain_curve(void)
 int eigen::P2F2P::find_nearest_point(const sPoint& target)
 {
     int min_index = NEGATIVE_ONE;
-    double min_dist = VERY_LARGE_NUMBER;
+    double min_dist = std::numeric_limits<double>::max();;
     double dist;
     double prev_dist;
     for(int i = 0; i < this->curve_.points.size(); i++)
     {
-        dist = NumMethods::eucledian_distance(this->curve_.points[i], target);
+        dist = eigen::NumMethods::eucledian_distance(this->curve_.points[i], target);
         if(dist < min_dist)
         {
             min_index = i;
@@ -173,9 +181,7 @@ int eigen::P2F2P::find_nearest_point(const sPoint& target)
  */
 sFrenet eigen::P2F2P::distance_to_curve(const sPoint& target, int min_index)
 {
-    float alpha = ALPHA;
-    int max_iteration = MAXIMUM_ITERATION;
-    sFrenet frame = NumMethods::steepest_gradient_descent(this->curve_, target, min_index, alpha, max_iteration);
+    sFrenet frame = eigen::NumMethods::steepest_gradient_descent(this->curve_, target, min_index, ALPHA, MAXIMUM_ITERATION);
     return frame;
 }
 
@@ -196,19 +202,19 @@ void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
     float cross_prod;
     if((min_index >= 0) && (min_index < this->curve_.points.size()))
     {
-        float dist_1 = NumMethods::eucledian_distance(this->curve_.points[min_index - 1], frame.cartesian_point);
-        float dist_2 = NumMethods::eucledian_distance(this->curve_.points[min_index], frame.cartesian_point);
+        float dist_1 = eigen::NumMethods::eucledian_distance(this->curve_.points[min_index - 1], frame.cartesian_point);
+        float dist_2 = eigen::NumMethods::eucledian_distance(this->curve_.points[min_index], frame.cartesian_point);
         if(dist_1 < dist_2)
         {
             last_index = min_index - 1;
             dist_end = dist_1;
-            cross_prod = NumMethods::cross_product(this->curve_.points[min_index - 1], frame.cartesian_point);
+            cross_prod = eigen::NumMethods::cross_product(this->curve_.points[min_index - 1], frame.cartesian_point);
         }
         else
         {
             last_index = min_index;
             dist_end = dist_2;
-            cross_prod = NumMethods::cross_product(this->curve_.points[min_index], frame.cartesian_point);
+            cross_prod = eigen::NumMethods::cross_product(this->curve_.points[min_index], frame.cartesian_point);
         }
         compute_distance = true;
     }
@@ -216,7 +222,7 @@ void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
     {
         last_index = 0;
         frame.geodetic_distance = NumMethods::eucledian_distance(this->curve_.points[0],frame.cartesian_point);
-        cross_prod = NumMethods::cross_product(this->curve_.points[0], frame.cartesian_point);
+        cross_prod = eigen::NumMethods::cross_product(this->curve_.points[0], frame.cartesian_point);
     }
     else
     {
@@ -249,8 +255,8 @@ void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
 
 std::ostream& eigen::operator<<(std::ostream& os, const P2F2P& o)
 {
-    os << std::string(20, '*');
-    os  << "\nPath length:" << std::endl;
+    os << "***** eigen object *****";
+    os  << "\nTesting this" << std::endl;
     /* to do */
     return os;
 }
@@ -274,7 +280,7 @@ spline::P2F2P::P2F2P(const std::vector<sPoint>& input)
     this->init();
     this->points_ = input;
     LOG(Level::LINFO, "Input Points size: " + std::to_string(points_.size()));
-    this->path_length_ = pre_calculator();
+    this->pre_calculator();
 }
 
 spline::P2F2P::~P2F2P()
@@ -292,94 +298,41 @@ void spline::P2F2P::process_points(const std::vector<sPoint>& input)
     }
     this->init();
     this->points_ = input;
-    this->path_length_ = pre_calculator();
+    this->pre_calculator();
     return;
 }
 
 sFrenet spline::P2F2P::g2f(const sPoint& point)
 {
-    /* Step 1: Find the closest point on the path and obtain the arc length (s) */
-    this->point_ = point;
+    // sPoint cartesian_point = {0,0};
+    // sPoint closest_point_on_curve = {0,0};
+    // double geodetic_distance = 0;
+    // bool direction = true; //true -> left; false -> right
+    // double lateral_distance = 0;
+    /* nearest cartesian point */
     this->frenet_.cartesian_point = point;
-    this->frenet_ = closest_point(point);
-
-    /* Step 2: Calculate the tangent vector */
-    double dx_dt = this->sx_.deriv(1, this->frenet_.geodetic_distance);  // First derivative of x with respect to the arc length s
-    double dy_dt = this->sy_.deriv(1, this->frenet_.geodetic_distance);  // First derivative of y with respect to the arc length s
-    LOG(Level::LINFO, "Tangent vector: " + std::to_string(dx_dt) + "|" + std::to_string(dy_dt));
-
-    /* Step 3: Calculate the normal vector (perpendicular to the tangent vector) */
-    sPoint normal_vector = {-dy_dt, dx_dt};  // 90-degree rotation of the tangent vector
-
-    /* Step 4: Calculate the length of the normal vector */
-    double norm_len = std::sqrt(normal_vector.x * normal_vector.x + normal_vector.y * normal_vector.y);
-    
-    /* Ensure the normal vector is not too small */
-    if (norm_len < 1e-6) 
-    {
-        LOG(Level::LERROR, "Normal vector length is too small, possible rounding error.");
-        return this->frenet_;  // Handle error or return current Frenet state
-    }
-
-    /* Step 5: Normalize the normal vector */
-    normal_vector.x /= norm_len;
-    normal_vector.y /= norm_len;
-
-    /* Step 6: Calculate the vector from the closest point on the path to the global point */
-    sPoint diff = {point.x - this->frenet_.closest_point_on_curve.x, point.y - this->frenet_.closest_point_on_curve.y};
-
-    /* Step 7: Project the difference vector onto the normalized normal vector to get lateral deviation (d) */
-    this->frenet_.lateral_distance = (diff.x * normal_vector.x + diff.y * normal_vector.y);
-
+    this->frenet_.closest_cartesian_point = this->closest_waypoint(point);
     return this->frenet_;
 }
 
 
 sPoint spline::P2F2P::f2g(const sFrenet& frenet)
 {
-    /* Step 1: Calculate the point on the path corresponding to the arc length (s) */
-    sPoint path_point = {this->sx_(frenet.geodetic_distance), this->sy_(frenet.geodetic_distance)};
-
-    /* Step 2: Calculate the tangent vector (first derivative of the spline function) */
-    double dx_dt = this->sx_.deriv(1, frenet.geodetic_distance);  // First derivative of x with respect to arc length s
-    double dy_dt = this->sy_.deriv(1, frenet.geodetic_distance);  // First derivative of y with respect to arc length s
-    LOG(Level::LINFO, "Tangent vector: " + std::to_string(dx_dt) + "|" + std::to_string(dy_dt));
-
-    /* Step 3: Calculate the normal vector (perpendicular to the tangent vector, 90-degree rotation) */
-    sPoint normal_vector = {-dy_dt, dx_dt};
-
-    /* Step 4: Calculate the length of the normal vector */
-    double norm_len = std::sqrt(normal_vector.x * normal_vector.x + normal_vector.y * normal_vector.y);
-
-    /* Check if the normal vector length is too small to avoid division by zero */
-    if (norm_len < 1e-6) 
-    {
-        LOG(Level::LERROR, "Normal vector length is too small, possible rounding error.");
-        return path_point;  // Return the path point directly in case of rounding errors
-    }
-
-    /* Step 5: Normalize the normal vector */
-    normal_vector.x /= norm_len;
-    normal_vector.y /= norm_len;
-
-    /* Step 6: Shift the point along the normal vector by the lateral deviation (d) */
-    this->point_ = {path_point.x + frenet.lateral_distance * normal_vector.x,
-                    path_point.y + frenet.lateral_distance * normal_vector.y};
-                    
-    return this->point_;
+             
+    return this->target_;
 }
 
-double spline::P2F2P::pre_calculator(void)
+void spline::P2F2P::pre_calculator(void)
 {   
     LOG(Level::LINFO, "Enter pre calculator.");
     /* Parameter calculator */
-    double t = 0;
-    // this->extract_T_.push_back(t);
-    // this->extract_X_.push_back(0);
-    // this->extract_Y_.push_back(0);
+    double t = 0; 
+    double d = 0;
     for(size_t i = 1; i < this->points_.size(); i++)
     {
-        t += euclidean_distance(this->points_[i], this->points_[i - 1]);
+        d = spline::NumMethods::eucledian_distance(this->points_[i], this->points_[i - 1]);
+        t += d;
+        this->extract_D_.push_back(d);  // Optional if needed
         this->extract_T_.push_back(t);
         this->extract_X_.push_back(this->points_[i].x);
         this->extract_Y_.push_back(this->points_[i].y);
@@ -391,24 +344,24 @@ double spline::P2F2P::pre_calculator(void)
     /* Spline interpolation for x(t) and y(t) */
     this->sx_.set_points(this->extract_T_, this->extract_X_);
     this->sy_.set_points(this->extract_T_, this->extract_Y_);
-    /* Calculate length interpolated path with numerical intergration */
-    double path_length = 0;
-    double prev_x = this->points_[0].x;
-    double prev_y = this->points_[0].y;
-    for(double t = this->extract_T_.front(); t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
-    {
-        double x = this->sx_(t);
-        double y = this->sy_(t);
-        path_length += euclidean_distance({prev_x, prev_y}, {x, y});
-        prev_x = x;
-        prev_y = y;
-    }
-    return path_length;
+    LOG(Level::LINFO, "Spline interpolation complete.");
+    return;
 }
 
-double spline::P2F2P::euclidean_distance(const sPoint& p1, const sPoint& p2)
+sPoint spline::P2F2P::closest_waypoint(const sPoint& target)
 {
-    return std::sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+    sPoint closest;
+    double min_distance = std::numeric_limits<double>::max(); 
+    for(size_t i = 1; i < this->points_.size(); i++)
+    {
+        double distance = spline::NumMethods::eucledian_distance(this->points_[i], target);
+        if(distance < min_distance)  
+        {
+            min_distance = distance; 
+            closest = this->points_[i];
+        }
+    }
+    return closest;
 }
 
 void spline::P2F2P::init(void)
@@ -418,49 +371,26 @@ void spline::P2F2P::init(void)
     this->frenet_.closest_point_on_curve = {0.0,0.0};
     this->frenet_.geodetic_distance = 0.0;
     this->frenet_.lateral_distance = 0.0;
-    this->point_ = {0.0,0.0};
-    this->path_length_ = 0.0;
+    this->target_ = {0.0,0.0};
     this->extract_X_.clear();
     this->extract_Y_.clear();
     this->extract_T_.clear();
     return;
 }
 
-sFrenet spline::P2F2P::closest_point(const sPoint& point)
-{
-    sFrenet frenet;
-    double min_dist = std::numeric_limits<double>::max();
-    double closest_s = 0;
-    /* Find next point on path */
-    for(double t = this->extract_T_.front(); t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
-    {
-        sPoint path_point = {this->sx_(t), this->sy_(t)};
-        double dist = euclidean_distance(path_point, point);
-        if(dist < min_dist)
-        {
-            min_dist = dist;
-            closest_s = t;
-        }
-    }
-    frenet.geodetic_distance = closest_s;
-    frenet.closest_point_on_curve = {this->sx_(closest_s), this->sy_(closest_s)};
-    return frenet;
-}
-
 /* Extern */
 
 std::ostream& spline::operator<<(std::ostream& os, const P2F2P& o)
 {
-    os << std::string(20, '*');
-    os  << "\nPath length:                    " << o.path_length_ << "\n"
-        << "Discretization distance:        " << DISCRETIZATION_DISTANCE << "\n"
+    os << "***** spline object *****";
+    os  << "Discretization distance:        " << DISCRETIZATION_DISTANCE << "\n"
         << "Waypoints:                      " << o.points_.size() << "\n"
         << "Max waypoints                   " << MAX_NUM_WAYPOINTS << "\n"
         << "Frenet:   *Closest point:       " << o.frenet_.closest_point_on_curve.x << "|" << o.frenet_.closest_point_on_curve.y << "\n"
         << "          *Arc length:          " << o.frenet_.geodetic_distance << "\n"
         << "          *Lateral deviation:   " << o.frenet_.lateral_distance << "\n"
-        << "Point:    *x:                   " << o.point_.x << "\n"
-        << "          *y:                   " << o.point_.y << "\n";
+        << "Point:    *x:                   " << o.target_.x << "\n"
+        << "          *y:                   " << o.target_.y << "\n";
     return os;
 }
 

@@ -74,21 +74,22 @@ namespace spline
         friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 
     private:
-        double pre_calculator(void);
-        double euclidean_distance(const sPoint& p1, const sPoint& p2);
+        void pre_calculator(void);
+        sPoint closest_waypoint(const sPoint& target);
         void init(void);
-        sFrenet closest_point(const sPoint& point);
+        
 
         /* Members */
         std::vector<sPoint> points_;
         sFrenet frenet_;
-        sPoint point_;
-        double path_length_;
+        sPoint target_;
+
         tk::spline sx_;
         tk::spline sy_;
-        std::vector<double> extract_X_;
-        std::vector<double> extract_Y_;
-        std::vector<double> extract_T_;
+        std::vector<double> extract_X_; // x points 
+        std::vector<double> extract_Y_; // y points 
+        std::vector<double> extract_T_; // Add eucledian distance
+        std::vector<double> extract_D_; // Distance between points 
 
     };
 
