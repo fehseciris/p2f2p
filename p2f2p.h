@@ -76,12 +76,16 @@ namespace spline
     private:
         void pre_calculator(void);
         sPoint closest_waypoint(const sPoint& target);
+        sPoint closest_point_on_curve(const sPoint& target);
+        double geodetic_distance(const sPoint& target);
+        bool direction(const sPoint& target);
         void init(void);
         
 
         /* Members */
         std::vector<sPoint> points_;
         sFrenet frenet_;
+        sPoint point_;
         sPoint target_;
 
         tk::spline sx_;

@@ -37,9 +37,9 @@ std::ostream& operator<<(std::ostream& os, const sFrenet& frenet)
     {
         str = "right";
     }
-    os << "F{Cartesian" << frenet.cartesian_point 
+    os << "F{Cartesian " << frenet.cartesian_point 
         << " - CloseK " << frenet.closest_cartesian_point
-        << " - ClosePoC" << frenet.closest_point_on_curve
+        << " - ClosePoC " << frenet.closest_point_on_curve
         << " - GeodeticD " << frenet.geodetic_distance
         << " - LateralD " << frenet.lateral_distance
         << " - Direction " << str

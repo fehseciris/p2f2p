@@ -4,33 +4,33 @@
  * Begin eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen 
  */
 
-double eigen::NumMethods::eucledian_distance(const sPoint A, const sPoint B)
+double eigen::Compute::eucledian_distance(const sPoint A, const sPoint B)
 {
     double diffY = B.y - A.y;
     double diffX = B.x - A.x;
     return sqrt(diffY * diffY + diffX * diffX);
 }
 
-double eigen::NumMethods::cross_product(const sPoint A, const sPoint B)
+double eigen::Compute::cross_product(const sPoint A, const sPoint B)
 {
     return ((A.x * B.y) - (A.y * B.x));
 }
 
-double eigen::NumMethods::evaluate(const double x, const double a0, const double a1, const double a2, const double a3 = 0)
+double eigen::Compute::evaluate(const double x, const double a0, const double a1, const double a2, const double a3 = 0)
 {
     return ((a3 * x * x * x) + (a2 * x * x) + (a1 * x) + a0);
 }
 
-double eigen::NumMethods::gradient(const double x, const double p, const double q, const double a0, const double a1, const double a2, const double a3 = 0)
+double eigen::Compute::gradient(const double x, const double p, const double q, const double a0, const double a1, const double a2, const double a3 = 0)
 {
     double grad_f_x = 3 * a3 * x * x + 2 * a2 * x + a1;
-    double df_dx = 2 * (x - p) + 2 * (eigen::NumMethods::evaluate(x, a0, a1, a2, a3) - q) * grad_f_x;
+    double df_dx = 2 * (x - p) + 2 * (eigen::Compute::evaluate(x, a0, a1, a2, a3) - q) * grad_f_x;
     return df_dx;
 }
 
-double eigen::NumMethods::residual(const double x, const double p, const double q, const double a0, const double a1, const double a2, const double a3 = 0)
+double eigen::Compute::residual(const double x, const double p, const double q, const double a0, const double a1, const double a2, const double a3 = 0)
 {
-    double diffQ = q - eigen::NumMethods::evaluate(x, a0, a1, a2, a3); 
+    double diffQ = q - eigen::Compute::evaluate(x, a0, a1, a2, a3); 
     double diffP = p - x;
     return sqrt(diffQ * diffQ + diffP * diffP);
 }
@@ -43,7 +43,7 @@ double eigen::NumMethods::residual(const double x, const double p, const double 
  * @param order Required order of the polynomial
  * @return void
  */
-void eigen::NumMethods::poly_fit_points(const std::vector<sPoint>& points, std::vector<sCoeff>& coeffs, int order)
+void eigen::Compute::poly_fit_points(const std::vector<sPoint>& points, std::vector<sCoeff>& coeffs, int order)
 {
     std::ofstream file("coefficients.txt");
     if (!file.is_open()) 
@@ -133,7 +133,7 @@ void eigen::NumMethods::poly_fit_points(const std::vector<sPoint>& points, std::
  * @param max_iter Termination criterion
  * @return frenet Frenet frame describing the target
  */
-sFrenet eigen::NumMethods::steepest_gradient_descent(const sCurve& curve, const sPoint& target, int init_index, double alpha, int max_iter)
+sFrenet eigen::Compute::steepest_gradient_descent(const sCurve& curve, const sPoint& target, int init_index, double alpha, int max_iter)
 {
     // Initial values
     double x = curve.points[init_index].x;  // Start with the x-coordinate of the nearest point
@@ -166,7 +166,7 @@ sFrenet eigen::NumMethods::steepest_gradient_descent(const sCurve& curve, const 
                 << std::endl;
 
         // Calculate the gradient using the polynomial's coefficients (a1, a2, a3)
-        double grad = eigen::NumMethods::gradient(x, p, q, coeff.a0, coeff.a1, coeff.a2, coeff.a3);
+        double grad = eigen::Compute::gradient(x, p, q, coeff.a0, coeff.a1, coeff.a2, coeff.a3);
         std::cout << "grad: " << grad;
 
         // If the gradient is NaN or exceeds a defined threshold, abort
@@ -180,7 +180,7 @@ sFrenet eigen::NumMethods::steepest_gradient_descent(const sCurve& curve, const 
         x = x - (alpha * grad);
 
         // Calculate the new residual (distance between the new point and the target point)
-        residual_num = eigen::NumMethods::residual(x, p, q, coeff.a0, coeff.a1, coeff.a2, coeff.a3);
+        residual_num = eigen::Compute::residual(x, p, q, coeff.a0, coeff.a1, coeff.a2, coeff.a3);
         std::cout << " | residual: " << residual_num << std::endl;
 
         // If the residual is NaN or exceeds a defined threshold, abort
@@ -197,7 +197,7 @@ sFrenet eigen::NumMethods::steepest_gradient_descent(const sCurve& curve, const 
 
             // Store the closest point on the curve
             closest_approach.x = x;
-            closest_approach.y = eigen::NumMethods::evaluate(x, coeff.a0, coeff.a1, coeff.a2, coeff.a3);  // Calculate y using the polynomial
+            closest_approach.y = eigen::Compute::evaluate(x, coeff.a0, coeff.a1, coeff.a2, coeff.a3);  // Calculate y using the polynomial
 
             // Fill the Frenet frame with the closest point and lateral distance
             frame.closest_point_on_curve = closest_approach;
@@ -215,7 +215,7 @@ sFrenet eigen::NumMethods::steepest_gradient_descent(const sCurve& curve, const 
     // If the maximum number of iterations is reached without convergence, return the last known point
     LOG(Level::LERROR, "Maximum number of iterations exceeded.");
     closest_approach.x = x;
-    closest_approach.y = eigen::NumMethods::evaluate(x, coeff.a0, coeff.a1, coeff.a2, coeff.a3);  // Calculate y using the polynomial
+    closest_approach.y = eigen::Compute::evaluate(x, coeff.a0, coeff.a1, coeff.a2, coeff.a3);  // Calculate y using the polynomial
 
     // Fill the Frenet frame with the closest point and lateral distance
     frame.closest_point_on_curve = closest_approach;
