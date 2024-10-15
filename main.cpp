@@ -17,13 +17,16 @@ int main(int argc, char * argv[])
 
     // sPoint point = {3, 2};
     sPoint point = {5,2};
+    // sPoint point = {3,2};
+    // sPoint point = {3,3};
+    // sPoint point = {2,2};
 
     sPoint dummy = {0, 0};
     sFrenet frenet;
 
     /* Open file to write waypoints and the target point */
     std::ofstream file("plot/waypoints.txt");
-    if (file.is_open()) 
+    if (file.is_open() && PLOTS_ACTIVE) 
     {
         for (const auto& point : waypoints) 
         {
@@ -32,15 +35,17 @@ int main(int argc, char * argv[])
         file << "target," << point.x << "," << point.y << std::endl;
         file.close();
         LOG(Level::LINFO, "Waypoints and target point successfully written to waypoints.txt");
+        system("start python plot/waypoints.py"); 
     } 
-    else 
+    else if (PLOTS_ACTIVE == false)
     {
-        LOG(Level::LERROR, "Unable to open file for writing");
+        LOG(Level::LWARNING, "Write in files disabled.");
+    }
+    else
+    {
+        LOG(Level::LERROR, "Unable to open file for writing.");
     }
     
-    // Python-Skript ausführen
-    // system("start python plot/waypoints.py"); 
-
     /* Eigen workspace */
     // std::shared_ptr<eigen::P2F2P> sptr_p2f2p = std::make_shared<eigen::P2F2P>(waypoints);
     // frenet = sptr_p2f2p->g2f(point);
@@ -49,9 +54,14 @@ int main(int argc, char * argv[])
     /* Spline workspace */
     std::shared_ptr<spline::P2F2P> sptr_spline = std::make_shared<spline::P2F2P>(waypoints);
     frenet = sptr_spline->g2f(point);
-    std::cout << frenet << std::endl;
+    // std::cout << frenet << std::endl;
     dummy = sptr_spline->f2g(frenet);
-    std::cout << dummy << std::endl;
+    // std::cout << dummy << std::endl;
+    // std::cout << *sptr_spline << std::endl;
+    sptr_spline->path_length();
+    double pos = 8.1;
+    sptr_spline->position(pos);
+    sptr_spline->tangent_angle(pos);
     
     return EXIT_SUCCESS;
 }

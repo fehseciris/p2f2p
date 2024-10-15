@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ostream>
 #include <vector>
+#include <string>
 
 /* eigen */
 #define MIN_WAYPOINTS               10
@@ -17,6 +18,7 @@
 #define DISCRETIZATION_DISTANCE     0.0001 // Max value 0.0001
 #define MAX_NUM_WAYPOINTS           10000
 #define MIN_NUM_WAYPOINTS           3
+#define PLOTS_ACTIVE                true
 
 struct sPoint
 {
@@ -25,6 +27,7 @@ struct sPoint
 };
 std::ostream& operator<<(std::ostream& os, const sPoint& point);
 std::ostream& operator<<(std::ostream& os, const std::vector<sPoint>& points);
+std::string to_string(const sPoint& point);
 
 struct sCoeff 
 {

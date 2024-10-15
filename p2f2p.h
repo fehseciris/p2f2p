@@ -29,9 +29,12 @@ namespace eigen
         P2F2P(P2F2P&&) = delete;
         P2F2P& operator=(P2F2P&&) = delete;
 
-        void process_points(const std::vector<sPoint>& points);
-        sFrenet g2f(const sPoint& target);
-        sPoint f2g(const sFrenet& target);
+        void process_points(const std::vector<sPoint>& points) override;
+        sFrenet g2f(const sPoint& target) override;
+        sPoint f2g(const sFrenet& target) override;
+        double path_length(void) override;
+        sPoint position(double& distance) override;
+        double tangent_angle(double& distance) override;
 
         friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 
@@ -67,9 +70,12 @@ namespace spline
         P2F2P(P2F2P&&) = delete;
         P2F2P& operator=(P2F2P&&) = delete;
 
-        void process_points(const std::vector<sPoint>& points);
-        sFrenet g2f(const sPoint& target);
-        sPoint f2g(const sFrenet& target);
+        void process_points(const std::vector<sPoint>& points) override;
+        sFrenet g2f(const sPoint& target) override;
+        sPoint f2g(const sFrenet& target) override;
+        double path_length(void) override;
+        sPoint position(double& distance) override;
+        double tangent_angle(double& distance) override;
 
         friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 

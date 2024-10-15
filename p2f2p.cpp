@@ -92,11 +92,11 @@ void eigen::P2F2P::process_points(const std::vector<sPoint>& points)
 sFrenet eigen::P2F2P::g2f(const sPoint& target)
 {
     this->point_ = target;
-    // Find the point among the input waypoints that lies closest to the input/target point
+    /* Find the point among the input waypoints that lies closest to the input/target point */
     int closest_point = find_nearest_point(target);            
-    // Find the closest point to the input/target point on the continuous curve and get the distance
+    /* Find the closest point to the input/target point on the continuous curve and get the distance */
     sFrenet frame = distance_to_curve(target, closest_point);   
-    // Find the distance to the closest point on the continuous curve from the curve's origin
+    /* Find the distance to the closest point on the continuous curve from the curve's origin */
     geodetic_distance(frame, closest_point);    
     this->frenet_ = frame;               
     return frame;                        
@@ -106,8 +106,21 @@ sPoint eigen::P2F2P::f2g(const sFrenet& target)
 {
     sPoint point;
     return point;
+}
 
+double eigen::P2F2P::path_length(void)
+{
+    return 0.;
+}
 
+sPoint eigen::P2F2P::position(double& distance)
+{
+    return {0,0};
+}
+
+double eigen::P2F2P::tangent_angle(double& distance)
+{
+    return 0.;
 }
 
 void eigen::P2F2P::clear(void)
@@ -310,35 +323,131 @@ sFrenet spline::P2F2P::g2f(const sPoint& point)
     this->frenet_.geodetic_distance = this->geodetic_distance(this->frenet_.closest_point_on_curve);
     this->frenet_.lateral_distance = spline::Compute::eucledian_distance(this->frenet_.closest_point_on_curve, point);
     this->frenet_.direction = direction(point);
+    LOG(Level::LINFO, "Point to frenet transformation complete.");
     return this->frenet_;
 }
 
 sPoint spline::P2F2P::f2g(const sFrenet& frenet)
 {
-    double lateral_distance = frenet.lateral_distance;
-    bool direction = frenet.direction;
+    this->frenet_ = frenet;
+    /* Find closest point on curve. */
+    sPoint target = {0,0};
+    sPoint actual = {0,0};
+    sPoint last = {this->sx_(this->extract_T_.front()), this->sy_(this->extract_T_.front())};
+    double distance_between = 0.0;
+    double actual_distance = this->frenet_.geodetic_distance;
+    double dummy = 0;
+    for(double t = this->extract_T_.front() + DISCRETIZATION_DISTANCE; 
+            t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
+    {
+        dummy++;
+        actual = {this->sx_(t) + DISCRETIZATION_DISTANCE, this->sy_(t) + DISCRETIZATION_DISTANCE};
+        distance_between = spline::Compute::eucledian_distance(last, actual);
+        actual_distance -= distance_between;
+        if(actual_distance < 0)
+        {
+            target.x = this->sx_(t);
+            target.y = this->sy_(t);
+            LOG(Level::LINFO, "Found closest point on curve.");
+            break;
+        }
+        last = actual;
+    }
+    LOG(Level::LINFO, "Method f2g loop counter: " + std::to_string(dummy));
+    /* Find point in cartesian with lateral distance */
+    /* Vector for direction */
+    double dir_x = actual.x - last.x;
+    double dir_y = actual.y - last.y;
+    /* Normal vector */
+    double normal_x;
+    double normal_y;
+    if (this->frenet_.direction) 
+    {   /* 90 deg left */
+        normal_x = -dir_y;
+        normal_y = dir_x;
+    } 
+    else 
+    {   /* 90 def right */
+        normal_x = dir_y;
+        normal_y = -dir_x;
+    }
+    /* Normalize normal vector */
+    double length = std::sqrt(normal_x * normal_x + normal_y * normal_y);
+    normal_x /= length;
+    normal_y /= length;
+    /* Calculate point in lateral distance */
+    target.x = actual.x + this->frenet_.lateral_distance * normal_x;
+    target.y = actual.y + this->frenet_.lateral_distance * normal_y;
+    LOG(Level::LINFO, "Cartesian Point found " + to_string(target));
+    LOG(Level::LINFO, "Frenet to point transformation complete.");
+    return target;
+}
 
-    /* 8.10733 */
-    sPoint point;
-    point = {this->sx_(frenet.geodetic_distance), this->sy_(frenet.geodetic_distance)};
-    std::cout << point << std::endl;
-    // // Punkt auf der Kurve anhand der geodätischen Distanz bestimmen
-    // for (int i = 0; i < 100; i++)
-    // {
-    //     point = {this->sx_(7 + i * 0.01), this->sy_(7 + i * 0.01)};
+double spline::P2F2P::path_length(void)
+{
+    /* Start by getting the first point on the curve */
+    sPoint actual = {0,0};
+    sPoint last = {this->sx_(this->extract_T_.front()),
+                    this->sy_(this->extract_T_.front())};
+    double path_length = 0;
+    /* Iterate over the curve by stepping through the parameter 't' */
+    for(double t = this->extract_T_.front() + DISCRETIZATION_DISTANCE; 
+            t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
+    {
+        /* Compute the coordinates of the point on the curve at parameter 't' */
+        actual = {this->sx_(t), this->sy_(t)};
+        /* Compute the distance between the current point on the curve and the last point */
+        path_length += spline::Compute::eucledian_distance(actual, last);
+        last = actual;
+    }
+    LOG(Level::LINFO, "Path length calculated with " + std::to_string(path_length));
+    return path_length;
+}
 
-    //     // Stelle sicher, dass die geodätische Distanz und der Punkt korrekt übereinstimmen
-    //     std::cout << 7 + i * 0.01 << " | " << point.x << "," << point.y << std::endl;
-    // }
-    // Hier berechnest du den Normalvektor (wie zuvor beschrieben), um den Punkt korrekt zu verschieben
-    // Nutze den lateralen Abstand und die Richtung, um den Punkt entsprechend zu verschieben
+sPoint spline::P2F2P::position(double& distance)
+{
+    sPoint target = {0,0};
+    sPoint actual = {0,0};
+    sPoint last = {this->sx_(this->extract_T_.front()), this->sy_(this->extract_T_.front())};
+    double distance_between = 0.0;
+    double actual_distance = distance;
+    double dummy = 0;
+    for(double t = this->extract_T_.front() + DISCRETIZATION_DISTANCE; 
+            t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
+    {
+        dummy++;
+        actual = {this->sx_(t) + DISCRETIZATION_DISTANCE, this->sy_(t) + DISCRETIZATION_DISTANCE};
+        distance_between = spline::Compute::eucledian_distance(last, actual);
+        actual_distance -= distance_between;
+        if(actual_distance < 0)
+        {
+            target.x = this->sx_(t);
+            target.y = this->sy_(t);
+            LOG(Level::LINFO, "Found point " + to_string(target) + " in " + std::to_string(distance));
+            break;
+        }
+        last = actual;
+    }
+    LOG(Level::LINFO, "Position calculation finished.");
+    return target;
+}   
 
-    return point;
+double spline::P2F2P::tangent_angle(double& distance)
+{
+    sPoint point_on_curve = this->position(distance);
+    double t_closest = this->sx_(point_on_curve.x);
+    double t_prev = t_closest - DISCRETIZATION_DISTANCE;
+    sPoint prev_point = {this->sx_(t_prev), this->sy_(t_prev)};
+    double angle = spline::Compute::angle2x(point_on_curve, prev_point);
+    LOG(Level::LINFO, "Found point " + to_string(point_on_curve) + " in " + std::to_string(distance) + 
+            " with tangent angle " + std::to_string(angle));
+    LOG(Level::LINFO, "Tangent angle calculation finished.");
+    return angle;
 }
 
 void spline::P2F2P::pre_calculator(void)
 {   
-    LOG(Level::LINFO, "Enter pre calculator.");
+    LOG(Level::LINFO, "Enter pre calculation.");
     /* Parameter calculator */
     double t = 0; 
     double d = 0;
@@ -370,7 +479,7 @@ void spline::P2F2P::pre_calculator(void)
     LOG(Level::LINFO, "Spline interpolation complete.");
     /* Open file to write waypoints and the target point */
     std::ofstream file("plot/spline.txt");
-    if (file.is_open()) 
+    if (file.is_open() && PLOTS_ACTIVE) 
     {
         /* Ensure the first point is explicitly written as the starting point */
         file << this->points_[0].x << "," << this->points_[0].y << std::endl;
@@ -384,17 +493,19 @@ void spline::P2F2P::pre_calculator(void)
         }
         file.close();
         LOG(Level::LINFO, "Spline successfully written to spline.txt");
+        system("start python plot/spline.py");
     } 
+    else if (PLOTS_ACTIVE == false)
+    {
+        LOG(Level::LWARNING, "Write in files disabled.");
+    }
     else 
     {
         LOG(Level::LERROR, "Unable to open file spline.txt for writing.");
     }
-    system("start python plot/spline.py");
     LOG(Level::LINFO, "Run spline plot.");
     return;
 }
-
-
 
 sPoint spline::P2F2P::closest_waypoint(const sPoint& target)
 {
@@ -415,9 +526,9 @@ sPoint spline::P2F2P::closest_waypoint(const sPoint& target)
 
 sPoint spline::P2F2P::closest_point_on_curve(const sPoint& target)
 {
-    sPoint closest; // The point on the curve that is closest to the target 
+    sPoint closest; 
     sPoint actual;
-    double min_distance = std::numeric_limits<double>::max(); // Initialize the minimum distance to a very large number
+    double min_distance = std::numeric_limits<double>::max(); 
     /* Start by getting the first point on the curve */
     double prev_x = this->sx_(this->extract_T_.front());
     double prev_y = this->sy_(this->extract_T_.front());
@@ -431,9 +542,9 @@ sPoint spline::P2F2P::closest_point_on_curve(const sPoint& target)
         /* If this distance is smaller than the previously recorded minimum distance, update the closest point */
         if(distance < min_distance)
         {
-            min_distance = distance; // Update the minimum distance
-            closest.x = actual.x; // Set the x-coordinate of the closest point
-            closest.y = actual.y; // Set the y-coordinate of the closest point
+            min_distance = distance;
+            closest.x = actual.x;
+            closest.y = actual.y;
         }
         /* Update the previous coordinates for the next iteration */
         prev_x = actual.x;
@@ -446,32 +557,33 @@ sPoint spline::P2F2P::closest_point_on_curve(const sPoint& target)
 
 double spline::P2F2P::geodetic_distance(const sPoint& target)
 {
-    double total_distance = 0;  // Die geodätische Distanz, die summiert wird
-    double min_distance_to_target = std::numeric_limits<double>::max();  // Der minimale Abstand zum Zielpunkt
-    double geodetic_distance_to_target = 0;  // Die gesuchte geodätische Distanz bis zum Zielpunkt
+    double total_distance = 0;
+    double min_distance_to_target = std::numeric_limits<double>::max();
+    double geodetic_distance_to_target = 0;
 
-    double prev_x = this->sx_(this->extract_T_.front());
-    double prev_y = this->sy_(this->extract_T_.front());
+    sPoint prev = {this->sx_(this->extract_T_.front()), this->sy_(this->extract_T_.front())};
     std::ofstream file("out/points.txt");
+    double dummy = 0;
     if (file.is_open()) 
     {
-        for(double t = this->extract_T_.front(); t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
+        for(double t = this->extract_T_.front() + DISCRETIZATION_DISTANCE; 
+                t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
         {
+            dummy++;
             sPoint actual = {this->sx_(t), this->sy_(t)};
             // file << actual << std::endl;  
-            // Berechne den Abstand zwischen dem aktuellen Punkt auf der Kurve und dem Zielpunkt
+            /* Calculate distance between actual point and target point */
             double distance_to_target = spline::Compute::eucledian_distance(actual, target);
-            // Aktualisiere die geodätische Distanz, wenn dieser Punkt näher am Zielpunkt liegt
+            /* Actualize the geodetic distance if new point is closer */
             if (distance_to_target < min_distance_to_target)
             {
                 min_distance_to_target = distance_to_target;
-                geodetic_distance_to_target = total_distance;  // Erfasste geodätische Distanz bis zu diesem Punkt
+                geodetic_distance_to_target = total_distance;  
             }
-            // Summiere den Abstand zwischen den aufeinanderfolgenden Punkten auf der Kurve
-            total_distance += spline::Compute::eucledian_distance({prev_x, prev_y}, actual);
-            // Setze die aktuellen Koordinaten als vorherige für den nächsten Schleifendurchlauf
-            prev_x = actual.x;
-            prev_y = actual.y;
+            /* Add geodetic distances */
+            total_distance += spline::Compute::eucledian_distance(prev, actual);
+            prev.x = actual.x;
+            prev.y = actual.y;
         }
         file.close();
         LOG(Level::LINFO, "Waypoints and target point successfully written to file points.txt");
@@ -479,32 +591,34 @@ double spline::P2F2P::geodetic_distance(const sPoint& target)
     else 
     {
         LOG(Level::LERROR, "Unable to open file points.txt for writing.");
-    }        
+    }  
+    LOG(Level::LINFO, "Geodetic distance counter: " + std::to_string(dummy));      
     LOG(Level::LINFO, "Geodetic distance calculated.");
-    return geodetic_distance_to_target;  // Gibt die geodätische Distanz bis zum Ziel zurück
+    return geodetic_distance_to_target;
 }
 
 bool spline::P2F2P::direction(const sPoint& target)
 {
-    double t_prev = std::max(this->extract_T_.front(), this->extract_T_.back() - DISCRETIZATION_DISTANCE);
-    double prev_x = this->sx_(t_prev);
-    double prev_y = this->sy_(t_prev);
-    double vec_curve_x = this->frenet_.closest_point_on_curve.x - prev_x;
-    double vec_curve_y = this->frenet_.closest_point_on_curve.y - prev_y;
-    double vec_target_x = target.x - this->frenet_.closest_point_on_curve.x;
-    double vec_target_y = target.y - this->frenet_.closest_point_on_curve.y;
-    double cross_product = vec_curve_x * vec_target_y - vec_curve_y * vec_target_x;
-    // If cross_product > 0, the target is to the left; if < 0, to the right
+    sPoint closest_on_curve = this->frenet_.closest_point_on_curve;
+    double t_closest = this->sx_(closest_on_curve.x);
+    double t_prev = t_closest - DISCRETIZATION_DISTANCE;
+    sPoint prev_point = {this->sx_(t_prev), this->sy_(t_prev)};
+    double cross_product = spline::Compute::cross_product(closest_on_curve, prev_point, target);
     LOG(Level::LINFO, "Found direction.");
-    if(cross_product > 0)
+    if (cross_product > 0) 
     {
-        return false;
+        return false;  // Links
+    } 
+    else if (cross_product < 0)
+    {
+        return true;   // Rechts
     }
     else
     {
-        return true;
+        throw std::runtime_error("Target on spline.");
     }
 }
+
 
 void spline::P2F2P::init(void)
 {
@@ -525,15 +639,24 @@ void spline::P2F2P::init(void)
 
 std::ostream& spline::operator<<(std::ostream& os, const P2F2P& o)
 {
-    os << "***** spline object *****";
-    os  << "Discretization distance:        " << DISCRETIZATION_DISTANCE << "\n"
-        << "Waypoints:                      " << o.points_.size() << "\n"
-        << "Max waypoints                   " << MAX_NUM_WAYPOINTS << "\n"
-        << "Frenet:   *Closest point:       " << o.frenet_.closest_point_on_curve.x << "|" << o.frenet_.closest_point_on_curve.y << "\n"
-        << "          *Arc length:          " << o.frenet_.geodetic_distance << "\n"
-        << "          *Lateral deviation:   " << o.frenet_.lateral_distance << "\n"
-        << "Point:    *x:                   " << o.target_.x << "\n"
-        << "          *y:                   " << o.target_.y << "\n";
+    os  << "***** Spline object ****************************************************\n"
+        << "*\n"  
+        << "* SETTINGS\n"    
+        << "* -> Discretization distance:               " << DISCRETIZATION_DISTANCE << "\n"
+        << "* -> Min waypoints                          " << MIN_NUM_WAYPOINTS << "\n"
+        << "* -> Max waypoints                          " << MAX_NUM_WAYPOINTS << "\n"
+        << "* -> Number of waypoints                    " << o.points_.size() << "\n"
+        << "*\n"
+        << "* INTERN\n"
+        << "* -> point_:                                " << o.point_ << "\n"
+        << "* -> frenet_.cartesian_point                " << o.frenet_.cartesian_point << "\n"
+        << "* -> frenet_.closest_cartestian_point:      " << o.frenet_.closest_cartesian_point << "\n"
+        << "* -> frenet_.closest_point_on_curve:        " << o.frenet_.closest_point_on_curve << "\n"
+        << "* -> frenet_.geodetic_distance              " << o.frenet_.geodetic_distance << "\n"
+        << "* -> frenet_.direction                      " << o.frenet_.direction << "\n"
+        << "* -> frenet_.lateral_distance               " << o.frenet_.lateral_distance << "\n"
+        << "*\n"
+        << "***** End **************************************************************\n";
     return os;
 }
 

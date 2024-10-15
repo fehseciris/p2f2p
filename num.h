@@ -21,6 +21,7 @@ namespace eigen
 
         static double eucledian_distance(const sPoint A, const sPoint B);
         static double cross_product(const sPoint A, const sPoint B);
+        static double cross_product(const sPoint Ga, const sPoint Gb, const sPoint P);
         static void poly_fit_points(const std::vector<sPoint>& points, std::vector<sCoeff>& coeff, int order);
         static sFrenet steepest_gradient_descent(const sCurve& c, const sPoint& target, int init_index, double alpha, int max_iter);
 
@@ -46,7 +47,8 @@ namespace spline
         Compute(Compute&&) = delete;
         Compute& operator=(Compute&&) = delete;
         
-        /* to do */
+        static double angle2x(const sPoint& a, const sPoint& b);
+        static double angle2y(const sPoint& a, const sPoint& b);
 
 
         friend class P2F2P;

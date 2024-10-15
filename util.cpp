@@ -16,6 +16,16 @@ std::ostream& operator<<(std::ostream& os, const std::vector<sPoint>& points)
     return os;
 }
 
+std::string to_string(const sPoint& point)
+{
+    std::string str = {"P("};
+    str += std::to_string(point.x);
+    str += "|";
+    str += std::to_string(point.y);
+    str += ")";
+    return str;
+}
+
 std::ostream& operator<<(std::ostream& os, const sCoeff& coeff)
 {
     os << "C(a0: " 
