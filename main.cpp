@@ -17,6 +17,7 @@ int main(int argc, char * argv[])
 
     // sPoint point = {3, 2};
     sPoint point = {5,2};
+    // sPoint point = {2,5};
     // sPoint point = {3,2};
     // sPoint point = {3,3};
     // sPoint point = {2,2};
@@ -53,15 +54,18 @@ int main(int argc, char * argv[])
 
     /* Spline workspace */
     std::shared_ptr<spline::P2F2P> sptr_spline = std::make_shared<spline::P2F2P>(waypoints);
+    sptr_spline->process_points(waypoints);
     frenet = sptr_spline->g2f(point);
-    // std::cout << frenet << std::endl;
+    std::cout << frenet << std::endl;
     dummy = sptr_spline->f2g(frenet);
-    // std::cout << dummy << std::endl;
-    // std::cout << *sptr_spline << std::endl;
+    std::cout << dummy << std::endl;
+    std::cout << *sptr_spline << std::endl;
     sptr_spline->path_length();
-    double pos = 8.1;
-    sptr_spline->position(pos);
-    sptr_spline->tangent_angle(pos);
+    for(double i = 1.; i < sptr_spline->path_length(); i++)
+    {
+        sptr_spline->position(i);
+        sptr_spline->tangent_angle(i);
+    }
     
     return EXIT_SUCCESS;
 }

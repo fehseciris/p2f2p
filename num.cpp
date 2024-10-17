@@ -203,20 +203,35 @@ sFrenet eigen::Compute::steepest_gradient_descent(const sCurve& curve, const sPo
  * Begin spline spline spline spline spline spline spline spline spline spline spline spline spline spline spline 
  */
 
+
+/**
+ * Based on to points and a generated vector the angle to x-axis will be
+ * calculated and returned
+ * 
+ * @param a End point vector
+ * @param b Begin point vector
+ */
 double spline::Compute::angle2x(const sPoint& a, const sPoint& b) 
 {
-    double dx = b.x - a.x;
-    double dy = b.y - a.y;
-    double angle_radians = std::atan2(dx, dy);  // atan2 gibt den Winkel in Radianten zurück
+    double dx = a.x - b.x;
+    double dy = a.y - b.y;
+    double angle_radians = std::atan2(dy, dx);  // atan2 gibt den Winkel in Radianten zurück
     double angle_degrees = angle_radians * (180.0 / M_PI);
     return angle_degrees;
 }
 
+/**
+ * Based on to points and a gernerated vector the angle to y-axis will be 
+ * calculated and returned
+ * 
+ * @param a End point vector
+ * @param b Begin point vector
+ */
 double spline::Compute::angle2y(const sPoint& a, const sPoint& b)
 {
-    double dx = b.x - a.x;
-    double dy = b.y - a.y;
-    double angle_radians = std::atan2(dy, dx);
+    double dx = a.x - b.x;
+    double dy = a.y - b.y;
+    double angle_radians = std::atan2(dx, dy);
     double angle_degrees = angle_radians * (180.0 / M_PI);
     return angle_degrees;
 }

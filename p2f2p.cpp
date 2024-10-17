@@ -434,12 +434,20 @@ sPoint spline::P2F2P::position(double& distance)
 
 double spline::P2F2P::tangent_angle(double& distance)
 {
-    sPoint point_on_curve = this->position(distance);
-    double t_closest = this->sx_(point_on_curve.x);
-    double t_prev = t_closest - DISCRETIZATION_DISTANCE;
-    sPoint prev_point = {this->sx_(t_prev), this->sy_(t_prev)};
-    double angle = spline::Compute::angle2x(point_on_curve, prev_point);
-    LOG(Level::LINFO, "Found point " + to_string(point_on_curve) + " in " + std::to_string(distance) + 
+    /* does not work fine - prev_point sometimes get random values */
+    // double t_closest = this->sx_(point_on_curve.x);
+    // double t_prev = t_closest - DISCRETIZATION_DISTANCE;
+    // sPoint prev_point = {this->sx_(t_prev), this->sy_(t_prev)};
+
+    sPoint derv_point = {this->sx_.deriv(2, distance),
+                                    this->sy_.deriv(2, distance)};
+    
+    double angle = std::atan2(derv_point.x, derv_point.y);
+    angle = angle * (180 / M_PI);
+
+
+    // double angle = spline::Compute::angle2x(point_on_curve, prev_point);
+    LOG(Level::LINFO, "Found point with deriv " + to_string(derv_point) + " in " + std::to_string(distance) + 
             " with tangent angle " + std::to_string(angle));
     LOG(Level::LINFO, "Tangent angle calculation finished.");
     return angle;
