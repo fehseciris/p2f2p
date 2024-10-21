@@ -18,6 +18,7 @@
 #define DISCRETIZATION_DISTANCE     0.0001 // Max value 0.0001
 #define MAX_NUM_WAYPOINTS           10000
 #define MIN_NUM_WAYPOINTS           3
+/* Plots */
 #define PLOTS_ACTIVE                true
 
 struct sPoint

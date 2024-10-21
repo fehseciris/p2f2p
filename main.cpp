@@ -26,7 +26,7 @@ int main(int argc, char * argv[])
     sFrenet frenet;
 
     /* Open file to write waypoints and the target point */
-    std::ofstream file("plot/waypoints.txt");
+    std::ofstream file("../plot/waypoints.txt");
     if (file.is_open() && PLOTS_ACTIVE) 
     {
         for (const auto& point : waypoints) 
@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
         file << "target," << point.x << "," << point.y << std::endl;
         file.close();
         LOG(Level::LINFO, "Waypoints and target point successfully written to waypoints.txt");
-        system("start python plot/waypoints.py"); 
+        system("start python ../plot/waypoints.py"); 
     } 
     else if (PLOTS_ACTIVE == false)
     {
