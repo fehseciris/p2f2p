@@ -56,10 +56,10 @@ int main(int argc, char * argv[])
     std::shared_ptr<spline::P2F2P> sptr_spline = std::make_shared<spline::P2F2P>(waypoints);
     sptr_spline->process_points(waypoints);
     frenet = sptr_spline->g2f(point);
-    std::cout << frenet << std::endl;
+    // std::cout << frenet << std::endl;
     dummy = sptr_spline->f2g(frenet);
-    std::cout << dummy << std::endl;
-    std::cout << *sptr_spline << std::endl;
+    // std::cout << dummy << std::endl;
+    // std::cout << *sptr_spline << std::endl;
     sptr_spline->path_length();
     for(double i = 1.; i < sptr_spline->path_length(); i++)
     {
