@@ -9,12 +9,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 find_package(Python3 REQUIRED)
 
 set(sources
-    main.cpp 
-    iol.cpp
-    num.cpp
-    oswrappers.cpp
-    p2f2p.cpp
-    util.cpp
+    src/main.cpp 
+    src/iol.cpp
+    src/num.cpp
+    src/oswrappers.cpp
+    src/p2f2p.cpp
+    src/util.cpp
     )
 
 add_executable(

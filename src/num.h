@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "eigen-3.4.0/Eigen/QR"
-#include "eigen-3.4.0/Eigen/SVD"
+#include "../eigen-3.4.0/Eigen/QR"
+#include "../eigen-3.4.0/Eigen/SVD"
 #include "p2f2p.h"
 
 namespace eigen

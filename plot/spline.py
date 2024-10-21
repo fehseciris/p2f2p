@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 waypoints = []
 target_point = None
 
-with open('plot/waypoints.txt', 'r') as file:
+with open('waypoints.txt', 'r') as file:
     for line in file.readlines():
         parts = line.strip().split(',')
         if parts[0] == 'target':  # If the line contains the target

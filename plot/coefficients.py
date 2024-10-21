@@ -6,7 +6,7 @@ waypoints = []
 target_point = None
 
 # Open and read the waypoints file
-with open('plot/waypoints.txt', 'r') as file:
+with open('waypoints.txt', 'r') as file:
     for line in file.readlines():
         parts = line.strip().split(',')
         if parts[0].lower() == 'target':
