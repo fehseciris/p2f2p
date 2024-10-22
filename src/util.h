@@ -4,6 +4,7 @@
 #include <ostream>
 #include <vector>
 #include <string>
+#include <filesystem>
 
 /* eigen */
 #define MIN_WAYPOINTS               10
@@ -19,7 +20,9 @@
 #define MAX_NUM_WAYPOINTS           10000
 #define MIN_NUM_WAYPOINTS           3
 /* Plots */
-#define PLOTS_ACTIVE                true
+#define PLOTS_ACTIVE_POINTS         false
+#define PLOTS_ACTIVE_SPLINE         true
+#define PLOTS_ACTIVE_WAYPTS         false
 
 struct sPoint
 {
@@ -56,5 +59,7 @@ struct sFrenet
     double lateral_distance = 0;
 };
 std::ostream& operator<<(std::ostream& os, const sFrenet& frenet);
+
+bool file_exists(const std::string& path);
 
 /* Eof */

@@ -15,7 +15,8 @@ public:
     virtual sPoint f2g(const sFrenet&) = 0;
     virtual double path_length(void) = 0;
     virtual sPoint position(double&) = 0;
-    virtual double tangent_angle(double&) = 0;
-    // virtual void curvatur(void) = 0;
-    // virtual void changeln_curvature(void) = 0;
+    virtual double tangent_angle_deg(double&) = 0;
+    virtual double tangent_angle_rad(double&) = 0;
+    virtual double curvature(double&) = 0;
+    virtual double change_in_curvature(double&) = 0;
 };

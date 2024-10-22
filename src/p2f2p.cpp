@@ -118,7 +118,22 @@ sPoint eigen::P2F2P::position(double& distance)
     return {0,0};
 }
 
-double eigen::P2F2P::tangent_angle(double& distance)
+double eigen::P2F2P::tangent_angle_rad(double& distance)
+{
+    return 0.;
+}
+
+double eigen::P2F2P::tangent_angle_deg(double& distance)
+{
+    return 0.;
+}
+
+double eigen::P2F2P::curvature(double& distance)
+{
+    return 0.;
+}
+
+double eigen::P2F2P::change_in_curvature(double& distance)
 {
     return 0.;
 }
@@ -210,13 +225,13 @@ sFrenet eigen::P2F2P::distance_to_curve(const sPoint& target, int min_index)
 void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
 {
     int last_index = NEGATIVE_ONE;
-    double dist_end = 0.0f;
+    double dist_end = 0.0;
     bool Compute_distance = false;
-    float cross_prod;
+    double cross_prod = 0.0;
     if((min_index >= 0) && (min_index < this->curve_.points.size()))
     {
-        float dist_1 = eigen::Compute::eucledian_distance(this->curve_.points[min_index - 1], frame.cartesian_point);
-        float dist_2 = eigen::Compute::eucledian_distance(this->curve_.points[min_index], frame.cartesian_point);
+        double dist_1 = eigen::Compute::eucledian_distance(this->curve_.points[min_index - 1], frame.cartesian_point);
+        double dist_2 = eigen::Compute::eucledian_distance(this->curve_.points[min_index], frame.cartesian_point);
         if(dist_1 < dist_2)
         {
             last_index = min_index - 1;
@@ -317,6 +332,10 @@ void spline::P2F2P::process_points(const std::vector<sPoint>& input)
 
 sFrenet spline::P2F2P::g2f(const sPoint& point)
 {
+    if(PLOTS_ACTIVE_SPLINE)
+    {
+        system("start cmd /k python ../../plot/spline.py");
+    }
     this->frenet_.cartesian_point = point;
     this->frenet_.closest_cartesian_point = this->closest_waypoint(point);
     this->frenet_.closest_point_on_curve = this->closest_point_on_curve(point);
@@ -432,25 +451,53 @@ sPoint spline::P2F2P::position(double& distance)
     return target;
 }   
 
-double spline::P2F2P::tangent_angle(double& distance)
+double spline::P2F2P::tangent_angle_deg(double& distance)
 {
-    /* does not work fine - prev_point sometimes get random values */
-    // double t_closest = this->sx_(point_on_curve.x);
-    // double t_prev = t_closest - DISCRETIZATION_DISTANCE;
-    // sPoint prev_point = {this->sx_(t_prev), this->sy_(t_prev)};
-
-    sPoint derv_point = {this->sx_.deriv(2, distance),
-                                    this->sy_.deriv(2, distance)};
-    
-    double angle = std::atan2(derv_point.x, derv_point.y);
-    angle = angle * (180 / M_PI);
-
-
-    // double angle = spline::Compute::angle2x(point_on_curve, prev_point);
-    LOG(Level::LINFO, "Found point with deriv " + to_string(derv_point) + " in " + std::to_string(distance) + 
-            " with tangent angle " + std::to_string(angle));
-    LOG(Level::LINFO, "Tangent angle calculation finished.");
+    double angle = this->tangent_angle_rad(distance) * (180 / M_PI);
+    LOG(Level::LINFO, "Found point with with tangent angle " + std::to_string(angle) + " in deg");
+    LOG(Level::LINFO, "Tangent angle calculation in deg finished.");
     return angle;
+}
+
+double spline::P2F2P::tangent_angle_rad(double& distance)
+{
+    /* Calculate derivative at distance */
+    sPoint derv_point = {this->sx_.deriv(1, distance), this->sy_.deriv(1, distance)};
+    LOG(Level::LINFO, "Deriv at distance target " + to_string(derv_point));
+    /* Calculate angle */
+    double angle = std::atan2(derv_point.y, derv_point.x);
+    /* Convert to degree */
+    LOG(Level::LINFO, "Found point with deriv " + to_string(derv_point) + " in " + std::to_string(distance) + 
+            " with tangent angle " + std::to_string(angle) + " in rad");
+    LOG(Level::LINFO, "Tangent angle calculation in rad finished.");
+    return angle;
+}
+
+double spline::P2F2P::curvature(double& distance)
+{
+    double dx = this->sx_.deriv(1, distance);
+    double dy = this->sy_.deriv(1, distance);
+    double ddx = this->sx_.deriv(2, distance);
+    double ddy = this->sy_.deriv(2, distance);
+    /* Calculate numerator */
+    double numerator = dx * ddy - dy * ddx; 
+    /* Calculate denominator */
+    double denominator = std::pow(dx * dx + dy * dy, 1.5);
+    /* Divide with null */
+    if (denominator == 0) 
+    {
+        throw std::runtime_error("Divide by null in curvature calculation.");
+    }
+    LOG(Level::LINFO, "Calculated curvature at " + std::to_string(distance) +
+            " is " + std::to_string(numerator / denominator));
+    LOG(Level::LINFO, "Curvature calculation finished.");
+    return numerator / denominator;
+}
+
+double spline::P2F2P::change_in_curvature(double& distance)
+{
+    LOG(Level::LINFO, "Change in curvature calculation finished.");
+    return 0.;
 }
 
 void spline::P2F2P::pre_calculator(void)
@@ -486,11 +533,11 @@ void spline::P2F2P::pre_calculator(void)
     this->sy_.set_points(this->extract_T_, this->extract_Y_);
     LOG(Level::LINFO, "Spline interpolation complete.");
     /* Open file to write waypoints and the target point */
-    std::ofstream file("plot/spline.txt");
-    if (file.is_open() && PLOTS_ACTIVE) 
+    std::ofstream file("../../plot/spline.txt");
+    if (file.is_open() && PLOTS_ACTIVE_SPLINE) 
     {
         /* Ensure the first point is explicitly written as the starting point */
-        file << this->points_[0].x << "," << this->points_[0].y << std::endl;
+        // file << this->points_[0].x << "," << this->points_[0].y << std::endl;
         /* Iterate over the curve by stepping through the parameter 't' */
         for(double t = this->extract_T_.front(); t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
         {
@@ -501,15 +548,14 @@ void spline::P2F2P::pre_calculator(void)
         }
         file.close();
         LOG(Level::LINFO, "Spline successfully written to spline.txt");
-        system("start python plot/spline.py");
     } 
-    else if (PLOTS_ACTIVE == false)
+    else if (PLOTS_ACTIVE_SPLINE == false)
     {
-        LOG(Level::LWARNING, "Write in files disabled.");
+        LOG(Level::LWARNING, "Write spline in file and plot disabled.");
     }
     else 
     {
-        LOG(Level::LERROR, "Unable to open file spline.txt for writing.");
+        LOG(Level::LERROR, "Unable to open file ../../plot/spline.txt for writing.");
     }
     LOG(Level::LINFO, "Run spline plot.");
     return;
@@ -570,16 +616,16 @@ double spline::P2F2P::geodetic_distance(const sPoint& target)
     double geodetic_distance_to_target = 0;
 
     sPoint prev = {this->sx_(this->extract_T_.front()), this->sy_(this->extract_T_.front())};
-    std::ofstream file("out/points.txt");
+    std::ofstream file("../../out/points.txt");
     double dummy = 0;
-    if (file.is_open()) 
+    if (file.is_open() && PLOTS_ACTIVE_POINTS) 
     {
         for(double t = this->extract_T_.front() + DISCRETIZATION_DISTANCE; 
                 t <= this->extract_T_.back(); t += DISCRETIZATION_DISTANCE)
         {
             dummy++;
             sPoint actual = {this->sx_(t), this->sy_(t)};
-            // file << actual << std::endl;  
+            file << actual << std::endl;  
             /* Calculate distance between actual point and target point */
             double distance_to_target = spline::Compute::eucledian_distance(actual, target);
             /* Actualize the geodetic distance if new point is closer */
@@ -596,9 +642,13 @@ double spline::P2F2P::geodetic_distance(const sPoint& target)
         file.close();
         LOG(Level::LINFO, "Waypoints and target point successfully written to file points.txt");
     } 
+    else if(PLOTS_ACTIVE_POINTS == false)
+    {
+        LOG(Level::LWARNING, "Write points in out/points.txt disabled.");
+    }
     else 
     {
-        LOG(Level::LERROR, "Unable to open file points.txt for writing.");
+        LOG(Level::LERROR, "Unable to open file ../../out/points.txt for writing.");
     }  
     LOG(Level::LINFO, "Geodetic distance counter: " + std::to_string(dummy));      
     LOG(Level::LINFO, "Geodetic distance calculated.");

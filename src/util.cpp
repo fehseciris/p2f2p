@@ -57,4 +57,9 @@ std::ostream& operator<<(std::ostream& os, const sFrenet& frenet)
     return os;
 }
 
+bool file_exists(const std::string& path) 
+{
+    return std::filesystem::exists(path);
+}
+
 /* Eof */

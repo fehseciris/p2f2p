@@ -50,10 +50,10 @@ double eigen::Compute::residual(const double x, const double p, const double q, 
  */
 void eigen::Compute::poly_fit_points(const std::vector<sPoint>& points, std::vector<sCoeff>& coeffs, int order)
 {
-    std::ofstream file("coefficients.txt");
+    std::ofstream file("../../plot/coefficients.txt");
     if (!file.is_open()) 
     {
-        std::cerr << "Unable to open file to write coefficients" << std::endl;
+        LOG(Level::LERROR, "Unable to open file ../../plot/coefficients.txt for writing.");
         return;
     }
     for (int i = order - 1; i < points.size() - (size_t)(order - 1); ++i) 
@@ -110,7 +110,7 @@ void eigen::Compute::poly_fit_points(const std::vector<sPoint>& points, std::vec
     }
     file.close();
     /* Python-Skript ausführen */
-    system("start python coefficients.py"); 
+    system("start python ../../plot/coefficients.py"); 
 }
 
 /**
@@ -233,6 +233,7 @@ double spline::Compute::angle2y(const sPoint& a, const sPoint& b)
     double dy = a.y - b.y;
     double angle_radians = std::atan2(dx, dy);
     double angle_degrees = angle_radians * (180.0 / M_PI);
+    std::cout << "-> this is inside: " << angle_degrees << std::endl;
     return angle_degrees;
 }
 

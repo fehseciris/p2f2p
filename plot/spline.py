@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(script_dir)
 
 # Read the waypoints and target from 'waypoints.txt'
 waypoints = []
@@ -14,7 +18,7 @@ with open('waypoints.txt', 'r') as file:
             waypoints.append((float(parts[0]), float(parts[1])))
 
 # Read the spline points from 'spline.txt'
-spline_points = np.loadtxt('plot/spline.txt', delimiter=',')
+spline_points = np.loadtxt('spline.txt', delimiter=',')
 
 # Separate X and Y coordinates for the waypoints and spline
 waypoints_x = [point[0] for point in waypoints]

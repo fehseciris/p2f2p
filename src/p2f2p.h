@@ -34,7 +34,10 @@ namespace eigen
         sPoint f2g(const sFrenet& target) override;
         double path_length(void) override;
         sPoint position(double& distance) override;
-        double tangent_angle(double& distance) override;
+        double tangent_angle_deg(double& distance) override;
+        double tangent_angle_rad(double& distance) override;
+        double curvature(double& distance) override;
+        double change_in_curvature(double& distance) override;
 
         friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 
@@ -75,7 +78,10 @@ namespace spline
         sPoint f2g(const sFrenet& target) override;
         double path_length(void) override;
         sPoint position(double& distance) override;
-        double tangent_angle(double& distance) override;
+        double tangent_angle_deg(double& distance) override;
+        double tangent_angle_rad(double& distance) override;
+        double curvature(double& distance) override;
+        double change_in_curvature(double& distance) override;
 
         friend std::ostream& operator<<(std::ostream& os, const P2F2P& o);
 
