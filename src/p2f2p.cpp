@@ -494,10 +494,29 @@ double spline::P2F2P::curvature(double& distance)
     return numerator / denominator;
 }
 
+// double spline::P2F2P::change_in_curvature(double& distance)
+// {
+//     double kappa_1 = this->curvature(distance);   
+//     double dis = distance + DISCRETIZATION_DISTANCE;        
+//     double kappa_2 = this->curvature(dis);
+//     double dkappa_ds = (kappa_2 - kappa_1) / DISCRETIZATION_DISTANCE;
+//     LOG(Level::LINFO, "Calculated change in curvature at " + std::to_string(distance) +
+//             " is " + std::to_string(dkappa_ds));
+//     LOG(Level::LINFO, "Change in curvature calculation finished.");
+//     return dkappa_ds;
+// }
+
 double spline::P2F2P::change_in_curvature(double& distance)
 {
+    double distance_plus = distance + DISCRETIZATION_DISTANCE;
+    double distance_minus = distance - DISCRETIZATION_DISTANCE;
+    double kappa_1 = this->curvature(distance_minus);
+    double kappa_2 = this->curvature(distance_plus);
+    double dkappa_ds = (kappa_2 - kappa_1) / (2 * DISCRETIZATION_DISTANCE);
+    LOG(Level::LINFO, "Calculated change in curvature at " + std::to_string(distance) +
+            " is " + std::to_string(dkappa_ds));
     LOG(Level::LINFO, "Change in curvature calculation finished.");
-    return 0.;
+    return dkappa_ds;
 }
 
 void spline::P2F2P::pre_calculator(void)
