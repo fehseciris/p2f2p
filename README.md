@@ -1,6 +1,8 @@
 # p2f2p
 This project converts points from cartesian coordinates to its equivalent representation in frenet coordinates or otherwise.
 
+https://de.mathworks.com/help/nav/ref/referencepathfrenet.html
+
 ## Build options
 Build with cmake extension in vs code. Maybe this works either on linux systems. (GCC 13.1.0 x86_64-w64-mingw32)
 
