@@ -23,7 +23,7 @@ int main(int argc, char * argv[])
     // sPoint point = {3,3};
     // sPoint point = {2,2};
 
-    sPoint dummy = {0, 0};
+    sPoint dummy;
     sFrenet frenet;
 
     /* Open file to write waypoints and the target point */
@@ -51,7 +51,7 @@ int main(int argc, char * argv[])
         LOG(Level::LWARNING, "Plot waypoints disabled.");
     }
     
-    /* Eigen workspace */
+    /* Eigen workspace - doesnt work fine - numerical instability */
     // std::shared_ptr<eigen::P2F2P> sptr_p2f2p = std::make_shared<eigen::P2F2P>(waypoints);
     // frenet = sptr_p2f2p->g2f(point);
     // std::cout << frenet << std::endl;

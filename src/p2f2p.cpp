@@ -1,5 +1,18 @@
 #include "p2f2p.h"
 
+/**
+ * Collects and parses command-line arguments to create a vector of sPoint objects.
+ * This function interprets command-line arguments in pairs to form points (x, y).
+ * Only works if the first argument is "-p", followed by an even number of additional arguments.
+ * Throws exceptions for invalid argument counts or non-numeric values.
+ * @param argc The count of command-line arguments.
+ * @param argv The array of command-line argument strings.
+ * @return A vector of sPoint objects, each representing a point with x and y coordinates.
+ * @throws std::invalid_argument If an incorrect number of arguments is provided, 
+ *         if arguments are non-numeric, or if the first argument is not "-p".
+ * @throws std::out_of_range If a numeric argument exceeds the allowable range.
+ * @throws std::runtime_error If no arguments are provided (argc <= 1).
+ */
 std::vector<sPoint> collect(int argc, char* argv[])
 {
     if(argc > 1)
@@ -44,13 +57,24 @@ std::vector<sPoint> collect(int argc, char* argv[])
 
 /**
  * begin eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen eigen
+ * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  */
 
+/**
+ * Default constructor that initializes the P2F2P object without waypoints.
+ * Logs the initialization.
+ */
 eigen::P2F2P::P2F2P()
 {
     LOG(Level::LINFO, "Init object without waypoints");
 }
 
+/**
+ * Constructor that initializes the P2F2P object with a vector of waypoints.
+ * Throws an exception if there are fewer than 10 waypoints.
+ * @param points A vector of waypoints (sPoint objects) to initialize the object.
+ * @throws std::runtime_error If there are fewer than 10 waypoints.
+ */
 eigen::P2F2P::P2F2P(const std::vector<sPoint>& points)
 {
     LOG(Level::LINFO, "Init object with waypoints");
@@ -63,11 +87,20 @@ eigen::P2F2P::P2F2P(const std::vector<sPoint>& points)
     this->curve_ = obtain_curve();
 }
 
+/**
+ * Destructor that clears all internal data in the P2F2P object.
+ */
 eigen::P2F2P::~P2F2P()
 {
     this->clear();
 }
 
+/**
+ * Processes a new set of waypoints to refresh the object.
+ * Clears existing data and initializes new waypoints.
+ * @param points A vector of sPoint objects representing the new waypoints.
+ * @throws std::runtime_error If there are fewer than 10 waypoints.
+ */
 void eigen::P2F2P::process_points(const std::vector<sPoint>& points)
 {
     LOG(Level::LINFO, "Refresh object with point data.");
@@ -83,11 +116,10 @@ void eigen::P2F2P::process_points(const std::vector<sPoint>& points)
 }
 
 /**
- * Processes the input points and generates the Frenet coodinates.
- * This is the master-fuction triggering all the sub-modules required for solving the problem
- *
- * @param target Cartesian coordinate of input point
- * @return void
+ * Converts a Cartesian target point to its Frenet frame representation.
+ * Calculates the nearest point on the curve to the target point and updates the Frenet frame.
+ * @param target The Cartesian coordinates of the input point.
+ * @return The Frenet frame of the target point as an sFrenet object.
  */
 sFrenet eigen::P2F2P::g2f(const sPoint& target)
 {
@@ -102,42 +134,79 @@ sFrenet eigen::P2F2P::g2f(const sPoint& target)
     return frame;                        
 }
 
+/**
+ * Converts a Frenet frame point back to Cartesian coordinates.
+ * @param target The Frenet frame (sFrenet object) to convert.
+ * @return The Cartesian coordinates of the target in an sPoint object.
+ */
 sPoint eigen::P2F2P::f2g(const sFrenet& target)
 {
     sPoint point;
     return point;
 }
 
+/**
+ * Calculates the total length of the path.
+ * @return The total path length as a double.
+ */
 double eigen::P2F2P::path_length(void)
 {
     return 0.;
 }
 
+/**
+ * Retrieves the Cartesian position on the curve at a specified distance.
+ * @param distance The distance along the curve for which the position is calculated.
+ * @return The position on the curve as an sPoint object.
+ */
 sPoint eigen::P2F2P::position(double& distance)
 {
     return {0,0};
 }
 
+/**
+ * Calculates the tangent angle at a specified distance along the curve, in radians.
+ * @param distance The distance along the curve for which the tangent angle is calculated.
+ * @return The tangent angle in radians as a double.
+ */
 double eigen::P2F2P::tangent_angle_rad(double& distance)
 {
     return 0.;
 }
 
+/**
+ * Calculates the tangent angle at a specified distance along the curve, in degrees.
+ * @param distance The distance along the curve for which the tangent angle is calculated.
+ * @return The tangent angle in degrees as a double.
+ */
 double eigen::P2F2P::tangent_angle_deg(double& distance)
 {
     return 0.;
 }
 
+/**
+ * Calculates the curvature at a specified distance along the curve.
+ * @param distance The distance along the curve for which the curvature is calculated.
+ * @return The curvature as a double.
+ */
 double eigen::P2F2P::curvature(double& distance)
 {
     return 0.;
 }
 
+/**
+ * Calculates the change in curvature with respect to the arc length at a specified distance.
+ * @param distance The distance along the curve for which the change in curvature is calculated.
+ * @return The rate of change in curvature as a double.
+ */
 double eigen::P2F2P::change_in_curvature(double& distance)
 {
     return 0.;
 }
 
+/**
+ * Clears all internal data, resetting the object.
+ */
 void eigen::P2F2P::clear(void)
 {
     this->waypoints_.clear();
@@ -150,12 +219,9 @@ void eigen::P2F2P::clear(void)
 }
 
 /**
- * Fits a polygon to the points obtained as input.
- * For now, a second order polynomial has been approximated
- * (Can be switched to higher order polynomial, or B-spline... if required)
- *
- * @param points List of way-points obtained as input
- * @return curve describing the coefficients of the polynomial
+ * Fits a polynomial to the provided waypoints to approximate the curve.
+ * For now, a second-order polynomial is used, but higher orders or B-splines are possible.
+ * @return An sCurve object describing the curve, including its coefficients and points.
  */
 sCurve eigen::P2F2P::obtain_curve(void)
 {
@@ -169,11 +235,9 @@ sCurve eigen::P2F2P::obtain_curve(void)
 }
 
 /**
- * Find the waypoint nearest to the target
- *
- * @param curve Describes the coefficients of the polynomial
- * @param target The input point for which the Frenet frame is to be obtained
- * @return index of the point (among the input way points) which lies nearest to the target
+ * Finds the waypoint closest to the specified target point.
+ * @param target The Cartesian coordinates of the input point.
+ * @return The index of the closest waypoint in the vector of input waypoints.
  */
 int eigen::P2F2P::find_nearest_point(const sPoint& target)
 {
@@ -200,12 +264,10 @@ int eigen::P2F2P::find_nearest_point(const sPoint& target)
 }
 
 /**
- * Find the closest distance of the target point from the curve
- *
- * @param curve Describes the coefficients of the polynomial
- * @param target The input point for which the Frenet frame is to be obtained
- * @param min_index Index of the point (among the input way points) which lies nearest to the target
- * @return frenet frame of the target point
+ * Calculates the shortest distance from the target point to the curve.
+ * @param target The Cartesian coordinates of the input point.
+ * @param min_index The index of the nearest waypoint to the target.
+ * @return An sFrenet object representing the Frenet frame of the target point.
  */
 sFrenet eigen::P2F2P::distance_to_curve(const sPoint& target, int min_index)
 {
@@ -213,14 +275,11 @@ sFrenet eigen::P2F2P::distance_to_curve(const sPoint& target, int min_index)
     return frame;
 }
 
-
 /**
- * Compute the distance of the closest point to the target from the origin, along the curve
- *
- * @param curve Describes the coefficients of the polynomial
- * @param frame Frenet frame of the target (the geodetic distance is updated here)
- * @param min_index Index of the point (among the input way points) which lies nearest to the target
- * @return void
+ * Computes the distance along the curve from the origin to the point on the curve closest to the target.
+ * Updates the geodetic distance within the Frenet frame.
+ * @param frame The Frenet frame object of the target (geodetic distance is updated here).
+ * @param min_index The index of the closest waypoint to the target.
  */
 void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
 {
@@ -281,6 +340,13 @@ void eigen::P2F2P::geodetic_distance(sFrenet& frame, int min_index)
 
 /* Extern */
 
+/**
+ * Overloaded operator<< to output the state of a P2F2P object to an output stream.
+ * Currently outputs a placeholder message; further customization may be added.
+ * @param os The output stream to which the P2F2P object will be written.
+ * @param o The P2F2P object to output.
+ * @return The modified output stream.
+ */
 std::ostream& eigen::operator<<(std::ostream& os, const P2F2P& o)
 {
     os << "***** eigen object *****";
@@ -291,13 +357,23 @@ std::ostream& eigen::operator<<(std::ostream& os, const P2F2P& o)
 
 /**
  * Begin spline spline spline spline spline spline spline spline spline spline spline spline spline spline spline 
+ * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  */
 
+/**
+ * Default constructor for P2F2P. Initializes the object without any waypoints and logs the initialization.
+ */
 spline::P2F2P::P2F2P()
 {
     LOG(Level::LINFO, "Init object without waypoints.");
 }
 
+/**
+ * Constructor for P2F2P. Initializes the object with a vector of waypoints.
+ * Throws an exception if the number of waypoints exceeds the maximum or minimum limit.
+ * @param input A vector of waypoints (sPoint objects) to initialize the object.
+ * @throws std::out_of_range If the number of waypoints exceeds max or is below the min limit.
+ */
 spline::P2F2P::P2F2P(const std::vector<sPoint>& input)
 {
     LOG(Level::LINFO, "Init object with point data.");
@@ -311,12 +387,21 @@ spline::P2F2P::P2F2P(const std::vector<sPoint>& input)
     this->pre_calculator();
 }
 
+/**
+ * Destructor for P2F2P. Cleans up internal data by resetting to initial state.
+ */
 spline::P2F2P::~P2F2P()
 {
     /* Clean up */
     this->init();
 }
 
+/**
+ * Updates the object's waypoints and processes them.
+ * Clears existing data, validates the input size, and performs pre-calculations.
+ * @param input A vector of sPoint objects representing the new waypoints.
+ * @throws std::out_of_range If the number of waypoints exceeds max or is below the min limit.
+ */
 void spline::P2F2P::process_points(const std::vector<sPoint>& input)
 {
     LOG(Level::LINFO, "Refresh object with point data.");
@@ -330,6 +415,12 @@ void spline::P2F2P::process_points(const std::vector<sPoint>& input)
     return;
 }
 
+/**
+ * Converts a Cartesian point to its Frenet frame representation.
+ * Calculates and sets the closest point on the curve, geodetic distance, and lateral distance.
+ * @param point The Cartesian coordinates of the input point.
+ * @return The Frenet frame of the target point as an sFrenet object.
+ */
 sFrenet spline::P2F2P::g2f(const sPoint& point)
 {
     if(PLOTS_ACTIVE_SPLINE)
@@ -346,6 +437,12 @@ sFrenet spline::P2F2P::g2f(const sPoint& point)
     return this->frenet_;
 }
 
+/**
+ * Converts a Frenet frame point back to Cartesian coordinates.
+ * Calculates the corresponding point on the curve.
+ * @param frenet The Frenet frame (sFrenet object) to convert.
+ * @return The Cartesian coordinates of the Frenet frame as an sPoint object.
+ */
 sPoint spline::P2F2P::f2g(const sFrenet& frenet)
 {
     this->frenet_ = frenet;
@@ -402,6 +499,10 @@ sPoint spline::P2F2P::f2g(const sFrenet& frenet)
     return target;
 }
 
+/**
+ * Calculates the total length of the path by summing the distances between discrete points on the curve.
+ * @return The total path length as a double.
+ */
 double spline::P2F2P::path_length(void)
 {
     /* Start by getting the first point on the curve */
@@ -423,6 +524,11 @@ double spline::P2F2P::path_length(void)
     return path_length;
 }
 
+/**
+ * Finds the Cartesian position on the curve at a specified distance along the curve.
+ * @param distance The distance along the curve for which the position is calculated.
+ * @return The position on the curve as an sPoint object.
+ */
 sPoint spline::P2F2P::position(double& distance)
 {
     sPoint target = {0,0};
@@ -451,6 +557,11 @@ sPoint spline::P2F2P::position(double& distance)
     return target;
 }   
 
+/**
+ * Calculates the tangent angle at a specified distance along the curve, in degrees.
+ * @param distance The distance along the curve for which the tangent angle is calculated.
+ * @return The tangent angle in degrees as a double.
+ */
 double spline::P2F2P::tangent_angle_deg(double& distance)
 {
     double angle = this->tangent_angle_rad(distance) * (180 / M_PI);
@@ -459,6 +570,11 @@ double spline::P2F2P::tangent_angle_deg(double& distance)
     return angle;
 }
 
+/**
+ * Calculates the tangent angle at a specified distance along the curve, in radians.
+ * @param distance The distance along the curve for which the tangent angle is calculated.
+ * @return The tangent angle in radians as a double.
+ */
 double spline::P2F2P::tangent_angle_rad(double& distance)
 {
     /* Calculate derivative at distance */
@@ -473,6 +589,11 @@ double spline::P2F2P::tangent_angle_rad(double& distance)
     return angle;
 }
 
+/**
+ * Calculates the curvature at a specified distance along the curve.
+ * @param distance The distance along the curve for which the curvature is calculated.
+ * @return The curvature as a double.
+ */
 double spline::P2F2P::curvature(double& distance)
 {
     double dx = this->sx_.deriv(1, distance);
@@ -506,6 +627,11 @@ double spline::P2F2P::curvature(double& distance)
 //     return dkappa_ds;
 // }
 
+/**
+ * Calculates the change in curvature with respect to the arc length at a specified distance.
+ * @param distance The distance along the curve for which the change in curvature is calculated.
+ * @return The rate of change in curvature as a double.
+ */
 double spline::P2F2P::change_in_curvature(double& distance)
 {
     double distance_plus = distance + DISCRETIZATION_DISTANCE;
@@ -519,6 +645,10 @@ double spline::P2F2P::change_in_curvature(double& distance)
     return dkappa_ds;
 }
 
+/**
+ * Prepares the curve for calculations by interpolating x(t) and y(t) values.
+ * Sets up internal parameters based on input waypoints, computes spline interpolation, and saves data for plotting.
+ */
 void spline::P2F2P::pre_calculator(void)
 {   
     LOG(Level::LINFO, "Enter pre calculation.");
@@ -580,6 +710,11 @@ void spline::P2F2P::pre_calculator(void)
     return;
 }
 
+/**
+ * Finds the closest waypoint to a given target point.
+ * @param target The Cartesian coordinates of the target point.
+ * @return The sPoint object representing the closest waypoint.
+ */
 sPoint spline::P2F2P::closest_waypoint(const sPoint& target)
 {
     sPoint closest;
@@ -597,6 +732,11 @@ sPoint spline::P2F2P::closest_waypoint(const sPoint& target)
     return closest;
 }
 
+/**
+ * Finds the closest point on the continuous curve to a given target point.
+ * @param target The Cartesian coordinates of the target point.
+ * @return The sPoint object representing the closest point on the curve.
+ */
 sPoint spline::P2F2P::closest_point_on_curve(const sPoint& target)
 {
     sPoint closest; 
@@ -627,7 +767,11 @@ sPoint spline::P2F2P::closest_point_on_curve(const sPoint& target)
     return closest;
 }
 
-
+/**
+ * Calculates the geodetic distance from the origin along the curve to the closest point on the curve to the target.
+ * @param target The Cartesian coordinates of the closest point on the curve.
+ * @return The geodetic distance to the target as a double.
+ */
 double spline::P2F2P::geodetic_distance(const sPoint& target)
 {
     double total_distance = 0;
@@ -674,6 +818,12 @@ double spline::P2F2P::geodetic_distance(const sPoint& target)
     return geodetic_distance_to_target;
 }
 
+/**
+ * Determines whether the target point is to the left or right of the curve based on the Frenet frame.
+ * @param target The Cartesian coordinates of the target point.
+ * @return True if the point is to the right, false if to the left.
+ * @throws std::runtime_error If the target point is on the curve.
+ */
 bool spline::P2F2P::direction(const sPoint& target)
 {
     sPoint closest_on_curve = this->frenet_.closest_point_on_curve;
@@ -684,11 +834,13 @@ bool spline::P2F2P::direction(const sPoint& target)
     LOG(Level::LINFO, "Found direction.");
     if (cross_product > 0) 
     {
-        return false;  // Links
+        /* Left */
+        return false;  
     } 
     else if (cross_product < 0)
     {
-        return true;   // Rechts
+        /* Right */
+        return true; 
     }
     else
     {
@@ -696,7 +848,9 @@ bool spline::P2F2P::direction(const sPoint& target)
     }
 }
 
-
+/**
+ * Resets the internal state of the object, clearing stored waypoints, Frenet data, and interpolation parameters.
+ */
 void spline::P2F2P::init(void)
 {
     this->points_.clear();
@@ -714,6 +868,13 @@ void spline::P2F2P::init(void)
 
 /* Extern */
 
+/**
+ * Overloaded operator<< to output the state of a P2F2P object to an output stream.
+ * Prints settings, waypoints, and Frenet information.
+ * @param os The output stream to which the P2F2P object will be written.
+ * @param o The P2F2P object to output.
+ * @return The modified output stream.
+ */
 std::ostream& spline::operator<<(std::ostream& os, const P2F2P& o)
 {
     os  << "***** Spline object ****************************************************\n"

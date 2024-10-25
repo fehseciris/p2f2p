@@ -33,7 +33,7 @@ namespace eigen
 
         friend class P2F2P;
     };
-};
+}; // namespace eigen
 
 namespace spline
 {
@@ -50,9 +50,8 @@ namespace spline
         static double angle2x(const sPoint& a, const sPoint& b);
         static double angle2y(const sPoint& a, const sPoint& b);
 
-
         friend class P2F2P;
     };
-};
+}; // namespace spline
 
 /* Eof */

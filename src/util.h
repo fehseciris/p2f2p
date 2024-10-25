@@ -6,7 +6,7 @@
 #include <string>
 #include <filesystem>
 
-/* eigen */
+/* Parameters for eigen */
 #define MIN_WAYPOINTS               10
 #define NEGATIVE_ONE                -1
 #define ORDER                       2
@@ -15,7 +15,7 @@
 #define MAXIMUM_ITERATION           25
 #define MAX_GRADIENT                1e10
 #define MAX_RESIDUAL                1e200
-/* spline */
+/* Parameters for spline */
 #define DISCRETIZATION_DISTANCE     0.0001 // Max value 0.0001
 #define MAX_NUM_WAYPOINTS           10000
 #define MIN_NUM_WAYPOINTS           3
@@ -24,6 +24,7 @@
 #define PLOTS_ACTIVE_SPLINE         true
 #define PLOTS_ACTIVE_WAYPTS         false
 
+/* Global coordinates */
 struct sPoint
 {
     double x = 0;
@@ -49,6 +50,7 @@ struct sCurve
     std::vector<sPoint> points;
 };
 
+/* Frenet coordinates */
 struct sFrenet
 {
     sPoint cartesian_point = {0,0};

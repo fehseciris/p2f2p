@@ -57,7 +57,8 @@ namespace eigen
     };
 
     std::ostream& operator<<(std::ostream& os, const P2F2P& o);
-};
+    
+}; // namespace eigen
 
 namespace spline
 {
@@ -93,7 +94,6 @@ namespace spline
         bool direction(const sPoint& target);
         void init(void);
         
-
         /* Members */
         std::vector<sPoint> points_;
         sFrenet frenet_;
@@ -110,6 +110,7 @@ namespace spline
     };
 
     std::ostream& operator<<(std::ostream& os, const P2F2P& o);
-};
+
+}; // namespace spline
 
 /* Eof */

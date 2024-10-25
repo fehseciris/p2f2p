@@ -2,7 +2,7 @@
 This project converts points from cartesian coordinates to its equivalent representation in frenet coordinates or otherwise.
 
 ## Build options
-Build with cmake extension in vs code. Maybe this works eather on linux systems. (GCC 13.1.0 x86_64-w64-mingw32)
+Build with cmake extension in vs code. Maybe this works either on linux systems. (GCC 13.1.0 x86_64-w64-mingw32)
 
 Use the microsoft visual studio solution to build with MVSC directily in vs.
 
@@ -32,3 +32,6 @@ Return curvature at arclength.
 
 Return change-in-curvature at arclength.
 -> void changeln_curvature(void)
+
+## Functionality validation 
+-> to do!
