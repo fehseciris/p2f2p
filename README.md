@@ -13,6 +13,8 @@ Use the microsoft visual studio solution to build with MVSC directily in vs.
 ## Functionality
 All functionalities are described by the IP2F2P interface. The derived classes implement these methods with different numerical calculations. Another description in file "Ip2f2p.h".
 
+For visualisation, you can set the parameter SPLINE_PLOTS in util.h to true.
+
 Insert new waypoints in P2F2P object. Also possible with constructor while create this.
 -> void process_points(const std::vector<sPoint>\&)
 

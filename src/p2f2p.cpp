@@ -58,6 +58,8 @@ void spline::P2F2P::process_points(const std::vector<sPoint>& input)
 /**
  * Converts a Cartesian point to its Frenet frame representation.
  * Calculates and sets the closest point on the curve, geodetic distance, and lateral distance.
+ * @note The spline plot is only available starting the program from p2f2p/build/debug
+ * you need to check this before. Maybe you need to change the path.
  * @param point The Cartesian coordinates of the input point.
  * @return The Frenet frame of the target point as an sFrenet object.
  */
