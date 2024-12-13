@@ -1,6 +1,10 @@
 # p2f2p
 This project converts points from cartesian coordinates to its equivalent representation in frenet coordinates or otherwise.
 
+https://de.mathworks.com/help/nav/ref/referencepathfrenet.html
+
+https://de.wikipedia.org/wiki/Frenetsche_Formeln
+
 ## Build options
 Build with cmake extension in vs code. Maybe this works either on linux systems.
 Compiler: Visual Studio Community 2022 Release - amd64_x86
