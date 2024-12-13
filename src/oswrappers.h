@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * Operating system wrappers class
+ * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ * This class implements the interface Ioswrappers and provides the functionalities.
+ */
+
 #include <ctime>
 
 namespace oswrapper

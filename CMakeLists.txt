@@ -22,8 +22,8 @@ add_executable(
     ${sources}
     )
 
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTOMOC ON)
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTOUIC ON)
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTORCC ON)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTOMOC OFF)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTOUIC OFF)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTORCC OFF)
 
 # Eof

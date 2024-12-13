@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * Interface for P2F2P class
+ * ^^^^^^^^^^^^^^^^^^^^^^^^^
+ * The functionalities that are implemented here in the interface correspond 
+ * to the methods used in the Matlab implementation.
+ */
+
 #include <iostream>
 #include <vector>
 
@@ -55,3 +62,5 @@ public:
      */
     virtual double change_in_curvature(double&) = 0;
 };
+
+/* Eof */

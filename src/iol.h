@@ -1,4 +1,9 @@
-#pragma once 
+#pragma once
+
+/**
+ * Logger class
+ * ^^^^^^^^^^^^
+ */
 
 #include <iostream>
 #include <chrono>
@@ -28,21 +33,38 @@
 #define FONT_BOLDCYAN        "\033[1m\033[36m"       // Bold Cyan 
 #define FONT_BOLDWHITE       "\033[1m\033[37m"       // Bold White 
 
+#define STRING_LENGTH        15
+
 /* Classic log */
-#define LOG(level, message)            IOL::get_instance().log(level, message)   
+#define LOG(level, topic, message)            IOL::get_instance().log(level, topic, message) 
+/* Set log level */
+#define LOG_LEVEL(level)                      IOL::get_instance().set_log_level(level)
+
+/* Usage */
+// LOG(Level::LDEBUG, Topic::P2F2P, "Log content on topic debug.");
+// Log(Level::LINFO, Topic::P2F2P, "Log content on topic info.");
+// Log(Level::LWARNING, Topic::P2F2P, "Log content on topic warning.");
+// Log(Level::LERROR, Topic::P2F2P, "Log content on topic error.");
 
 enum class Level
 {
+    LDEBUG,
     LINFO, 
     LWARNING,
     LERROR,
+    // more levels ...
 };
 
-/* Class Logger */
+enum class Topic 
+{
+    P2F2P,
+    // more topics ...
+};
+
 class IOL
 {
 public:
-    IOL() = default;
+    IOL() : current_level(Level::LDEBUG) {}  // Default level is LDEBUG
     virtual ~IOL() = default;
 
     /* Explicit delete */
@@ -63,13 +85,21 @@ public:
      * @param str String for console output
      * @return void
      */
-    void log(Level level, const std::string& str);
+    void log(Level level, Topic topic, const std::string& str);
 
     /**
-     * Time function
-     * @return std::string with actual time and date
+     * Set log level
+     * @param level Log level to set
      */
-    std::string actual_time(void);
+    void set_log_level(Level level);
+
+private:
+    Level current_level;
+
+    static std::string praefix_build(const Level& level, const Topic& topic);
+    static std::ostringstream actual_time(void);
+    static std::ostringstream level(const Level& level);
+    static std::ostringstream topic(const Topic& topic);
 
 };
 
